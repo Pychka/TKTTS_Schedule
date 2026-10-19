@@ -1,0 +1,45 @@
+import 'package:tktts_schedule/models/data_base.dart';
+import 'package:tktts_schedule/ui_models/couple_subgroup_model.dart';
+
+class LessonsModel {
+  Couple couple;
+  List<CoupleSubgroupModel> subgroups;
+  Call call;
+
+  LessonsModel(
+    this.couple,
+    this.subgroups,
+    this.call
+  );
+
+  int collision(List<LessonsModel> newLessons) {
+    return newLessons.indexWhere((lesson) {
+      final isBaseEqual = coupleIsEquals(lesson.couple, couple) && lesson.call.time == call.time;
+
+      if (!isBaseEqual) return false;
+
+     if(lesson.subgroups.length != subgroups.length) return false;
+     for(final subgroup in lesson.subgroups){
+      if(!subgroups.any((s) => 
+        s.auditorie.id == subgroup.auditorie.id
+        && s.teacher.id == subgroup.teacher.id
+        && s.group.id == subgroup.group.id
+        && s.number == subgroup.number)){
+          return false;
+        }
+     }
+      
+      return true;
+    });
+  }
+
+  static bool coupleIsEquals(Couple couple, Couple oldCouple){
+    return 
+      couple.date.year == oldCouple.date.year &&
+      couple.date.month == oldCouple.date.month &&
+      couple.date.day == oldCouple.date.day &&
+      couple.subject == oldCouple.subject &&
+      couple.subgroup == oldCouple.subgroup &&
+      couple.groupId == oldCouple.groupId;
+  }
+}

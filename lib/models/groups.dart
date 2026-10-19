@@ -1,0 +1,10 @@
+import 'package:drift/drift.dart';
+import 'package:tktts_schedule/models/schedule_object.dart';
+
+@DataClassName('Group', implementing: [ScheduleObject])
+class Groups extends Table {
+  IntColumn get id => integer()();
+  TextColumn get name => text().withLength(min: 1, max: 500)();
+  @override
+  Set<Column> get primaryKey => {id};
+}

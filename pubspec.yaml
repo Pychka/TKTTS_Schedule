@@ -1,0 +1,55 @@
+name: tktts_schedule
+description: "A cross-platform app for TKTTS schedule"
+publish_to: 'none'
+version: 0.5.0+1
+
+environment:
+  sdk: ^3.13.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  drift: ^2.35.1
+  drift_flutter: ^0.3.1
+  json_serializer: ^0.3.1
+  http: ^1.6.0
+  collection: ^1.19.1
+  intl: ^0.20.3
+  hive_ce: ^2.20.0
+  hive_ce_flutter: ^2.3.4
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/icon.png"
+  adaptive_icon_background: "assets/images/foreground.png"
+  adaptive_icon_foreground: "assets/images/icon.png"
+  adaptive_icon_foreground_inset: 46
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.35.1
+  build_runner: ^2.4.0
+  hive_ce_generator: ^1.11.3
+  flutter_launcher_icons: ^0.13.1
+  package_rename: ^1.10.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/images/
+
+package_rename_config:
+  android:
+    app_name: "Tktts Schedule"
+  ios:
+    app_name: "Tktts Schedule"
+  web:
+    app_name: "Tktts Schedule"
+  windows:
+    app_name: "Tktts Schedule"
