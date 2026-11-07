@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/ui_models/receipt_type.dart';
+import 'package:tktts_schedule/screens/additional/search_component.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 class ScheduleScreen extends StatefulWidget{
   const ScheduleScreen({super.key});
@@ -13,16 +17,39 @@ class ScheduleScreen extends StatefulWidget{
 
 class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObserver {
   late Future _data;
-
+  bool isLoadingSchedule = false;
   @override
   void initState() {
     super.initState();
     _data = SessionInfo.instance.scheduleService.uploadScheduleSearch(
-      (object) {
-      setState(() {
-        SessionInfo.instance.scheduleService.selectedObject = object;
-      });
-    });
+      (object) async {
+        setState(() {
+          SessionInfo.instance.scheduleService.selectedObject = object;
+          isLoadingSchedule = true;
+        });
+        
+        try {
+          await SessionInfo.instance.scheduleService.uploadSchedule();
+        
+          if (mounted) {
+            setState(() {
+              isLoadingSchedule = false;
+            });
+          }
+        } catch (e) {
+          if (context.mounted) { 
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Не удалось загрузить расписание. Проверьте интернет.'),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          print('Ошибка загрузки: $e');
+        }
+      },
+    );
   }
 
   @override
@@ -39,7 +66,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                 valueListenable: SessionInfo.instance.scheduleService.currentModelNotifier,
                 builder:(context, value, child) =>
                   Center(
-                    child: value == null ? Text("Выберите объект", style: TextStyle(fontSize: 30),) : ListenableBuilder(
+                    child: (value == null || isLoadingSchedule) ? getWidget()
+                     : ListenableBuilder(
                     listenable: SessionInfo.instance.scheduleService.currentModelNotifier,
                     builder: (context, child) {
                       if(value.object.groupedLessons.isEmpty){
@@ -116,31 +144,37 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                                 mainAxisAlignment: MainAxisAlignment.start,
                                                 crossAxisAlignment: CrossAxisAlignment.center, 
                                                 children: [
-                                                  Align(
-                                                    alignment: AlignmentGeometry.center,
-                                                    child: Text(
-                                                      lesson.call.time.toString(),
-                                                      textScaler: scaler,
-                                                      textAlign: TextAlign.center,
-                                                      style: const TextStyle(
-                                                        fontSize: 30,
-                                                        fontWeight: FontWeight.w900
-                                                      ),
-                                                    ),
-                                                  ),
                                                   Expanded(
                                                     child: Column(
-                                                      spacing: 10,
+                                                      spacing: 5,
                                                       crossAxisAlignment: CrossAxisAlignment.start,
                                                       mainAxisSize: MainAxisSize.min,
                                                       children: [
-                                                        Text(
-                                                          "${lesson.call.timeStart} - ${lesson.call.timeEnd}",
-                                                          textScaler: scaler,
-                                                          style: const TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight: FontWeight.bold
-                                                          ),
+                                                        Row(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          children:[
+                                                            Text(
+                                                              "${lesson.call.time} пара",
+                                                              textScaler: scaler,
+                                                              textAlign: TextAlign.center,
+                                                              style: const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.w900
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              "${lesson.call.timeStart} - ${lesson.call.timeEnd}",
+                                                              textScaler: scaler,
+                                                              style: const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight.bold
+                                                              ),
+                                                            ),
+                                                          ]
+                                                        ),
+                                                        Divider(
+                                                          
                                                         ),
                                                         Text(
                                                           lesson.couple.subject,
@@ -150,7 +184,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                                             fontWeight: FontWeight.bold
                                                           ),
                                                         ),
-                                                        SessionInfo.instance.scheduleService.currentModel!.object.getFooter(lesson),
+                                                        Center(
+                                                          child: SessionInfo.instance.scheduleService.currentModel!.object.getFooter(lesson),
+                                                        ),
                                                       ],
                                                     ),
                                                   )
@@ -175,8 +211,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
             ),
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
-            left: 16,
-            right: 16,
+            left: 0,
+            right: 0,
             child: FutureBuilder(
               future: _data,
               builder: (context, snapshot) {
@@ -184,10 +220,49 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                   return const CircularProgressIndicator();
                 }
                 else if (snapshot.hasError) {
-                  return Text('Ошибка: ${snapshot.error}');
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Ошибка загрузки: ${snapshot.error}'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  });
+                  
+                  return const SizedBox.shrink();
                 }
                 else if (snapshot.hasData && snapshot.data == true) {
-                  return SessionInfo.instance.scheduleService.searchComponent;
+                  return SearchComponent(
+                    key: const ValueKey('main_search'),
+                    objects: SessionInfo.instance.scheduleService.objects,
+                    onScheduleObjectSelected: (object) async {
+                      setState(() {
+                        SessionInfo.instance.scheduleService.selectedObject = object;
+                        isLoadingSchedule = true;
+                      });
+                      
+                      try {
+                        await SessionInfo.instance.scheduleService.uploadSchedule();
+                      
+                        if (mounted) {
+                          setState(() {
+                            isLoadingSchedule = false;
+                          });
+                        }
+                      } catch (e) {
+                        if (context.mounted) { 
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Не удалось загрузить расписание. Проверьте интернет.'),
+                              backgroundColor: Colors.redAccent,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                        print('Ошибка загрузки: $e');
+                      }
+                    },
+                  );
                 }
                 return const Center(
                   child: Text(
@@ -207,5 +282,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
     // Navigator.of(context).pushReplacement(
     //   MaterialPageRoute(builder: (context) => const MainScreen()),
     // );
+  }
+  Widget getWidget(){
+    if (isLoadingSchedule) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return const Center(child: Text('Выберите объект'));
   }
 }

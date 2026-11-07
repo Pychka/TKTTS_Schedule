@@ -37,7 +37,7 @@ class SearchComponentState extends State<SearchComponent> {
       viewShape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      viewBackgroundColor: Color(0xC0dceeff), 
+      viewBackgroundColor: Color(0xFFdceeff), 
       viewElevation: 0, 
       viewLeading: const SizedBox.shrink(), 
       viewConstraints: const BoxConstraints(
@@ -51,7 +51,7 @@ class SearchComponentState extends State<SearchComponent> {
             filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
             child: SearchBar(
               constraints: const BoxConstraints(maxHeight: 70, minHeight: 70),
-              backgroundColor: const WidgetStatePropertyAll(Color(0xC0dceeff)),
+              backgroundColor: const WidgetStatePropertyAll(Color(0xC1dceeff)),
               elevation: const WidgetStatePropertyAll(0),
               controller: controller,
               shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) {
@@ -61,7 +61,7 @@ class SearchComponentState extends State<SearchComponent> {
                 );
               }),
               padding: const WidgetStatePropertyAll<EdgeInsets>(
-                EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
+                EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
               ),
               onTap: () {
                 controller.openView();
@@ -158,13 +158,14 @@ class SearchComponentState extends State<SearchComponent> {
                       icon: SessionInfo.instance.userInfo.getFavoriteIcon(group),
                     ),
                     
-                    onTap: () {
+                    onTap: () async {
                       setState(() {
                         selectedObject = group; 
                         _searchController.text = group.name;
                         widget.onScheduleObjectSelected(group);
                       });
                       controller.closeView(group.name); 
+                      await SessionInfo.instance.scheduleService.uploadSchedule();
                     },
                   );
                 },

@@ -14,7 +14,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final List<Widget> _screens = [
     const ScheduleScreen(),
-    const Center(child: Text('Экран профиля')),
+    const Center(child:  Text('Экран профиля'),),
     const Center(child: Text('Экран настроек приложения')),
   ];
   final List<NavItem> _navItems = const [

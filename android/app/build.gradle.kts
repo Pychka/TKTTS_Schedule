@@ -14,6 +14,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    ndkVersion = "30.0.16248370"
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.tktts_schedule"

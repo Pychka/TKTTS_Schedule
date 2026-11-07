@@ -84,7 +84,6 @@ class TeacherModel extends BaseModel<Teacher> {
       spacing: 6.0,
       runSpacing: 4.0,
       children: [
-        Text("groups: ${lesson.subgroups.length}"),
         for(final subgroup in lesson.subgroups)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start, 

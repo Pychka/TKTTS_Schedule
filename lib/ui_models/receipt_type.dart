@@ -1,5 +1,5 @@
 enum ReceiptType {
   api,
   db,
-  mock
+  mock,
 }

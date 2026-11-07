@@ -171,6 +171,18 @@ class DataBase extends _$DataBase {
     });
   }
 
+  Future<List<Group>> getGroups(Iterable<int> ids) async {
+    return await (select(groups)..where((t) => t.id.isIn(ids))).get();
+  }
+
+  Future<List<Teacher>> getTeachers(Iterable<int> ids) async {
+    return await (select(teachers)..where((t) => t.id.isIn(ids))).get();
+  }
+
+  Future<List<Auditory>> getAuditories(Iterable<int> ids) async {
+    return await (select(auditories)..where((t) => t.id.isIn(ids))).get();
+  }
+
   Future deleteCouplesByIds(Iterable<int> idsToDelete) async {
     await (delete(couples)..where((t) => t.id.isIn(idsToDelete))).go();
   }

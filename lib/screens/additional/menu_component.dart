@@ -23,7 +23,7 @@ class _MenuComponentState extends State<MenuComponent> with WidgetsBindingObserv
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0),
+        margin: const EdgeInsets.only(right: 8.0, left: 8.0, bottom: 8.0),
         child: 
         ClipRRect(
           borderRadius: BorderRadius.circular(20),

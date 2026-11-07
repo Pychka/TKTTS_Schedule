@@ -88,6 +88,8 @@ class GroupModel extends BaseModel<Group> {
         for(final subgroup in lesson.subgroups)
           Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             spacing: 5,
             children: [
               if(lesson.subgroups.length > 1 || lesson.couple.subgroup > 0)
@@ -102,7 +104,7 @@ class GroupModel extends BaseModel<Group> {
               Wrap(
                 spacing: 5,
                 runSpacing: 5,
-                alignment: WrapAlignment.start,
+                alignment: WrapAlignment.center,
                 children: [
                   TextButton(onPressed: () {
                       SessionInfo.instance.scheduleService.changeModelToTeacher(subgroup.teacher.id);
