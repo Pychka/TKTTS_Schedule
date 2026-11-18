@@ -16,6 +16,9 @@ class AuditoryModel extends BaseModel<Auditory> {
 
   factory AuditoryModel.fromJson(Map<String, dynamic> json) {
     final auditoryJson = Map<String, dynamic>.from(json)..remove('lessons');
+    if (!auditoryJson.containsKey('updatedAt') || auditoryJson['updatedAt'] == null) {
+      auditoryJson['updatedAt'] = DateTime.now().toIso8601String(); 
+    }
     final Auditory parsedAuditory = Auditory.fromJson(auditoryJson);
     final List<dynamic> rawLessons = json['lessons'] as List<dynamic>? ?? [];
     List<dynamic> rawData;
@@ -31,9 +34,18 @@ class AuditoryModel extends BaseModel<Auditory> {
           lessonJson['date'] = DateTime.parse(rawDate).toIso8601String();
         }
       }
-      final Group parsedGroup = Group.fromJson(lessonJson['group']);
+      final nowIso = DateTime.now().toIso8601String();
+      final rawGroup = lessonJson['group'];
+      if (!rawGroup.containsKey('updatedAt') || rawGroup['updatedAt'] == null) {
+        rawGroup['updatedAt'] = nowIso; 
+      }
+      final Group parsedGroup = Group.fromJson(rawGroup);
       rawData = lessonJson['teachers'] as List<dynamic>? ?? [];
-      List<Teacher> teachers = rawData.map((teacher) => Teacher.fromJson(teacher)).toList();
+      List<Teacher> teachers = rawData.map((rawTeacher) {
+        final teacherJson = Map<String, dynamic>.from(rawTeacher as Map);
+        teacherJson['updatedAt'] ??= nowIso;
+        return Teacher.fromJson(teacherJson);
+      }).toList();
       final callData = lessonJson['call'];
       if (!callData.containsKey('id') || callData['id'] == null) {
         callData['id'] = 0;
@@ -141,7 +153,7 @@ class AuditoryModel extends BaseModel<Auditory> {
                       spacing: 5,
                       children: [
                         Text(
-                          subgroup.auditorie.name,
+                          subgroup.group.name,
                           textAlign: TextAlign.center,
                           textScaler: scaler,
                           style: TextStyle(

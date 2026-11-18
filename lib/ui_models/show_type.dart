@@ -9,4 +9,6 @@ enum ShowType {
   today,
   @HiveField(2)
   fromToday,
+  @HiveField(3)
+  singleDay,
 }

@@ -20,7 +20,15 @@ class TeacherService implements ScheduleObjectService<Teacher, TeacherModel> {
       final response = await http.get(Uri.parse('$baseUrl/teacher'));
       if(response.statusCode == 200){
         final List<dynamic> jsonList = jsonDecode(response.body);
-        result = ScheduleObjectMetadata(jsonList.map((json) => Teacher.fromJson(json)).toList(), ReceiptType.api);
+        final teachers = jsonList.map((rawJson) {
+          final json = Map<String, dynamic>.from(rawJson as Map);
+          if (json['updatedAt'] == null) {
+            json['updatedAt'] = DateTime.now().toIso8601String();
+          }
+          return Teacher.fromJson(json);
+        }).toList();
+
+        result = ScheduleObjectMetadata(teachers, ReceiptType.api);
         await updateMany(result.object);
       }
       else{
@@ -47,7 +55,7 @@ class TeacherService implements ScheduleObjectService<Teacher, TeacherModel> {
         return ScheduleObjectMetadata(newModel, ReceiptType.api);
       }
       if(response.statusCode == 204){
-        return ScheduleObjectMetadata(TeacherModel(Teacher(id: id, name: ""), []), ReceiptType.mock);
+        return ScheduleObjectMetadata(TeacherModel(Teacher(id: id, name: "",  updatedAt: DateTime.now()), []), ReceiptType.mock);
       }
       else{
         throw Exception('Не удалось загрузить преподавателя');

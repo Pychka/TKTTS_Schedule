@@ -20,8 +20,15 @@ class AuditoryService implements ScheduleObjectService<Auditory, AuditoryModel> 
       final response = await http.get(Uri.parse('$baseUrl/auditory'));
       if(response.statusCode == 200){
         final List<dynamic> jsonList = jsonDecode(response.body);
-        result = ScheduleObjectMetadata(jsonList.map((json) => Auditory.fromJson(json)).toList(), ReceiptType.api);
-        await updateMany(result.object);
+        final auditories = jsonList.map((rawJson) {
+          final json = Map<String, dynamic>.from(rawJson as Map);
+          if (json['updatedAt'] == null) {
+            json['updatedAt'] = DateTime.now().toIso8601String();
+          }
+          return Auditory.fromJson(json);
+        }).toList();
+
+        result = ScheduleObjectMetadata(auditories, ReceiptType.api);
       }
       else{
         throw Exception('Не удалось загрузить группы');
@@ -45,7 +52,7 @@ class AuditoryService implements ScheduleObjectService<Auditory, AuditoryModel> 
         return ScheduleObjectMetadata(AuditoryModel.fromJson(data), ReceiptType.api);
       }
       if(response.statusCode == 204){
-        return ScheduleObjectMetadata(AuditoryModel(Auditory(id: id, name: ""), []), ReceiptType.mock);
+        return ScheduleObjectMetadata(AuditoryModel(Auditory(id: id, name: "",  updatedAt: DateTime.now()), []), ReceiptType.mock);
       }
       else{
         throw Exception('Не удалось загрузить аудиторию');

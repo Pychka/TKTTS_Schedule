@@ -113,6 +113,10 @@ class SearchComponentState extends State<SearchComponent> {
                         value: ShowType.today,
                         child: Text("Текущий день"),
                       ),
+                      const PopupMenuItem(
+                        value: ShowType.today,
+                        child: Text("Отдельные дни"),
+                      ),
                     ],
                   ),
                 ),

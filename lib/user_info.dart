@@ -3,6 +3,7 @@ import 'package:hive_ce/hive.dart';
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/models/schedule_object.dart';
 import 'package:tktts_schedule/storage_service.dart';
+import 'package:tktts_schedule/ui_models/model_type.dart';
 import 'package:tktts_schedule/ui_models/show_type.dart';
 part 'user_info.g.dart';
 
@@ -20,6 +21,8 @@ class UserInfo {
   Set<int> favoriteTeachers = {};
   @HiveField(5)
   Set<int> favoriteAuditories = {};
+  @HiveField(6)
+  (int, ModelType)? trackedObject;
 
   void addFavorite(ScheduleObject obj){
     final set = _getSet(obj);

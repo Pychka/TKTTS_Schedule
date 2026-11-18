@@ -19,6 +19,8 @@ class ShowTypeAdapter extends TypeAdapter<ShowType> {
         return ShowType.today;
       case 2:
         return ShowType.fromToday;
+      case 3:
+        return ShowType.singleDay;
       default:
         return ShowType.all;
     }
@@ -33,6 +35,8 @@ class ShowTypeAdapter extends TypeAdapter<ShowType> {
         writer.writeByte(1);
       case ShowType.fromToday:
         writer.writeByte(2);
+      case ShowType.singleDay:
+        writer.writeByte(3);
     }
   }
 

@@ -30,8 +30,20 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -55,6 +67,12 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -72,6 +90,10 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -84,17 +106,23 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
 class Group extends DataClass implements Insertable<Group>, ScheduleObject {
   final int id;
   final String name;
-  const Group({required this.id, required this.name});
+  final DateTime updatedAt;
+  const Group({required this.id, required this.name, required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   GroupsCompanion toCompanion(bool nullToAbsent) {
-    return GroupsCompanion(id: Value(id), name: Value(name));
+    return GroupsCompanion(
+      id: Value(id),
+      name: Value(name),
+      updatedAt: Value(updatedAt),
+    );
   }
 
   factory Group.fromJson(
@@ -105,6 +133,7 @@ class Group extends DataClass implements Insertable<Group>, ScheduleObject {
     return Group(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -113,15 +142,20 @@ class Group extends DataClass implements Insertable<Group>, ScheduleObject {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  Group copyWith({int? id, String? name}) =>
-      Group(id: id ?? this.id, name: name ?? this.name);
+  Group copyWith({int? id, String? name, DateTime? updatedAt}) => Group(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
   Group copyWithCompanion(GroupsCompanion data) {
     return Group(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -129,40 +163,59 @@ class Group extends DataClass implements Insertable<Group>, ScheduleObject {
   String toString() {
     return (StringBuffer('Group(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, name, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Group && other.id == this.id && other.name == this.name);
+      (other is Group &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.updatedAt == this.updatedAt);
 }
 
 class GroupsCompanion extends UpdateCompanion<Group> {
   final Value<int> id;
   final Value<String> name;
+  final Value<DateTime> updatedAt;
   const GroupsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
-  GroupsCompanion.insert({this.id = const Value.absent(), required String name})
-    : name = Value(name);
+  GroupsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.updatedAt = const Value.absent(),
+  }) : name = Value(name);
   static Insertable<Group> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
-  GroupsCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return GroupsCompanion(id: id ?? this.id, name: name ?? this.name);
+  GroupsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime>? updatedAt,
+  }) {
+    return GroupsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 
   @override
@@ -174,6 +227,9 @@ class GroupsCompanion extends UpdateCompanion<Group> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -181,7 +237,8 @@ class GroupsCompanion extends UpdateCompanion<Group> {
   String toString() {
     return (StringBuffer('GroupsCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -214,8 +271,20 @@ class $TeachersTable extends Teachers with TableInfo<$TeachersTable, Teacher> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -239,6 +308,12 @@ class $TeachersTable extends Teachers with TableInfo<$TeachersTable, Teacher> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -256,6 +331,10 @@ class $TeachersTable extends Teachers with TableInfo<$TeachersTable, Teacher> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -268,17 +347,27 @@ class $TeachersTable extends Teachers with TableInfo<$TeachersTable, Teacher> {
 class Teacher extends DataClass implements Insertable<Teacher>, ScheduleObject {
   final int id;
   final String name;
-  const Teacher({required this.id, required this.name});
+  final DateTime updatedAt;
+  const Teacher({
+    required this.id,
+    required this.name,
+    required this.updatedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   TeachersCompanion toCompanion(bool nullToAbsent) {
-    return TeachersCompanion(id: Value(id), name: Value(name));
+    return TeachersCompanion(
+      id: Value(id),
+      name: Value(name),
+      updatedAt: Value(updatedAt),
+    );
   }
 
   factory Teacher.fromJson(
@@ -289,6 +378,7 @@ class Teacher extends DataClass implements Insertable<Teacher>, ScheduleObject {
     return Teacher(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -297,15 +387,20 @@ class Teacher extends DataClass implements Insertable<Teacher>, ScheduleObject {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  Teacher copyWith({int? id, String? name}) =>
-      Teacher(id: id ?? this.id, name: name ?? this.name);
+  Teacher copyWith({int? id, String? name, DateTime? updatedAt}) => Teacher(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
   Teacher copyWithCompanion(TeachersCompanion data) {
     return Teacher(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -313,42 +408,59 @@ class Teacher extends DataClass implements Insertable<Teacher>, ScheduleObject {
   String toString() {
     return (StringBuffer('Teacher(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, name, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Teacher && other.id == this.id && other.name == this.name);
+      (other is Teacher &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.updatedAt == this.updatedAt);
 }
 
 class TeachersCompanion extends UpdateCompanion<Teacher> {
   final Value<int> id;
   final Value<String> name;
+  final Value<DateTime> updatedAt;
   const TeachersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   TeachersCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.updatedAt = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Teacher> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
-  TeachersCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return TeachersCompanion(id: id ?? this.id, name: name ?? this.name);
+  TeachersCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime>? updatedAt,
+  }) {
+    return TeachersCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 
   @override
@@ -360,6 +472,9 @@ class TeachersCompanion extends UpdateCompanion<Teacher> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -367,7 +482,8 @@ class TeachersCompanion extends UpdateCompanion<Teacher> {
   String toString() {
     return (StringBuffer('TeachersCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1285,8 +1401,20 @@ class $AuditoriesTable extends Auditories
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1310,6 +1438,12 @@ class $AuditoriesTable extends Auditories
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -1327,6 +1461,10 @@ class $AuditoriesTable extends Auditories
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -1340,17 +1478,27 @@ class Auditory extends DataClass
     implements Insertable<Auditory>, ScheduleObject {
   final int id;
   final String name;
-  const Auditory({required this.id, required this.name});
+  final DateTime updatedAt;
+  const Auditory({
+    required this.id,
+    required this.name,
+    required this.updatedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   AuditoriesCompanion toCompanion(bool nullToAbsent) {
-    return AuditoriesCompanion(id: Value(id), name: Value(name));
+    return AuditoriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      updatedAt: Value(updatedAt),
+    );
   }
 
   factory Auditory.fromJson(
@@ -1361,6 +1509,7 @@ class Auditory extends DataClass
     return Auditory(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -1369,15 +1518,20 @@ class Auditory extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  Auditory copyWith({int? id, String? name}) =>
-      Auditory(id: id ?? this.id, name: name ?? this.name);
+  Auditory copyWith({int? id, String? name, DateTime? updatedAt}) => Auditory(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
   Auditory copyWithCompanion(AuditoriesCompanion data) {
     return Auditory(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -1385,42 +1539,59 @@ class Auditory extends DataClass
   String toString() {
     return (StringBuffer('Auditory(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, name, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Auditory && other.id == this.id && other.name == this.name);
+      (other is Auditory &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.updatedAt == this.updatedAt);
 }
 
 class AuditoriesCompanion extends UpdateCompanion<Auditory> {
   final Value<int> id;
   final Value<String> name;
+  final Value<DateTime> updatedAt;
   const AuditoriesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   AuditoriesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.updatedAt = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Auditory> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
-  AuditoriesCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return AuditoriesCompanion(id: id ?? this.id, name: name ?? this.name);
+  AuditoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime>? updatedAt,
+  }) {
+    return AuditoriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 
   @override
@@ -1432,6 +1603,9 @@ class AuditoriesCompanion extends UpdateCompanion<Auditory> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -1439,7 +1613,8 @@ class AuditoriesCompanion extends UpdateCompanion<Auditory> {
   String toString() {
     return (StringBuffer('AuditoriesCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -2181,10 +2356,12 @@ abstract class _$DataBase extends GeneratedDatabase {
 typedef $$GroupsTableCreateCompanionBuilder = GroupsCompanion Function({
   Value<int> id,
   required String name,
+  Value<DateTime> updatedAt,
 });
 typedef $$GroupsTableUpdateCompanionBuilder = GroupsCompanion Function({
   Value<int> id,
   Value<String> name,
+  Value<DateTime> updatedAt,
 });
 
 final class $$GroupsTableReferences
@@ -2246,6 +2423,11 @@ class $$GroupsTableFilterComposer extends Composer<_$DataBase, $GroupsTable> {
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2317,6 +2499,11 @@ class $$GroupsTableOrderingComposer extends Composer<_$DataBase, $GroupsTable> {
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$GroupsTableAnnotationComposer
@@ -2333,6 +2520,9 @@ class $$GroupsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   Expression<T> couplesRefs<T extends Object>(
     Expression<T> Function($$CouplesTableAnnotationComposer a) f,
@@ -2414,11 +2604,18 @@ class $$GroupsTableTableManager
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
-          }) => GroupsCompanion(id: id, name: name),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) => GroupsCompanion.insert(id: id, name: name),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) => GroupsCompanion(id: id, name: name, updatedAt: updatedAt),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => GroupsCompanion.insert(
+                id: id,
+                name: name,
+                updatedAt: updatedAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -2439,7 +2636,12 @@ class $$GroupsTableTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (couplesRefs)
-                        await $_getPrefetchedData<Group, $GroupsTable, Couple>(
+                        await $_getPrefetchedDataByColumns<
+                          Group,
+                          $GroupsTable,
+                          Couple,
+                          $CouplesTable
+                        >(
                           currentTable: table,
                           referencedTable: $$GroupsTableReferences
                               ._couplesRefsTable(db),
@@ -2449,17 +2651,16 @@ class $$GroupsTableTableManager
                                 table,
                                 p0,
                               ).couplesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.groupId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'group_id',
                           typedResults: items,
                         ),
                       if (coupleSubgroupsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Group,
                           $GroupsTable,
-                          CoupleSubgroup
+                          CoupleSubgroup,
+                          $CoupleSubgroupsTable
                         >(
                           currentTable: table,
                           referencedTable: $$GroupsTableReferences
@@ -2470,10 +2671,8 @@ class $$GroupsTableTableManager
                                 table,
                                 p0,
                               ).coupleSubgroupsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.groupId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'group_id',
                           typedResults: items,
                         ),
                     ];
@@ -2501,10 +2700,12 @@ typedef $$GroupsTableProcessedTableManager =
 typedef $$TeachersTableCreateCompanionBuilder = TeachersCompanion Function({
   Value<int> id,
   required String name,
+  Value<DateTime> updatedAt,
 });
 typedef $$TeachersTableUpdateCompanionBuilder = TeachersCompanion Function({
   Value<int> id,
   Value<String> name,
+  Value<DateTime> updatedAt,
 });
 
 final class $$TeachersTableReferences
@@ -2548,6 +2749,11 @@ class $$TeachersTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2595,6 +2801,11 @@ class $$TeachersTableOrderingComposer
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TeachersTableAnnotationComposer
@@ -2611,6 +2822,9 @@ class $$TeachersTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   Expression<T> coupleSubgroupsRefs<T extends Object>(
     Expression<T> Function($$CoupleSubgroupsTableAnnotationComposer a) f,
@@ -2667,11 +2881,18 @@ class $$TeachersTableTableManager
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
-          }) => TeachersCompanion(id: id, name: name),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) => TeachersCompanion.insert(id: id, name: name),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) => TeachersCompanion(id: id, name: name, updatedAt: updatedAt),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => TeachersCompanion.insert(
+                id: id,
+                name: name,
+                updatedAt: updatedAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -2690,10 +2911,11 @@ class $$TeachersTableTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (coupleSubgroupsRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                       Teacher,
                       $TeachersTable,
-                      CoupleSubgroup
+                      CoupleSubgroup,
+                      $CoupleSubgroupsTable
                     >(
                       currentTable: table,
                       referencedTable: $$TeachersTableReferences
@@ -2703,8 +2925,8 @@ class $$TeachersTableTableManager
                         table,
                         p0,
                       ).coupleSubgroupsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.teacherId == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'teacher_id',
                       typedResults: items,
                     ),
                 ];
@@ -3420,10 +3642,11 @@ class $$CouplesTableTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (coupleSubgroupsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Couple,
                           $CouplesTable,
-                          CoupleSubgroup
+                          CoupleSubgroup,
+                          $CoupleSubgroupsTable
                         >(
                           currentTable: table,
                           referencedTable: $$CouplesTableReferences
@@ -3434,17 +3657,16 @@ class $$CouplesTableTableManager
                                 table,
                                 p0,
                               ).coupleSubgroupsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.coupleId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'couple_id',
                           typedResults: items,
                         ),
                       if (coupleCallsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Couple,
                           $CouplesTable,
-                          CoupleCall
+                          CoupleCall,
+                          $CoupleCallsTable
                         >(
                           currentTable: table,
                           referencedTable: $$CouplesTableReferences
@@ -3455,10 +3677,8 @@ class $$CouplesTableTableManager
                                 table,
                                 p0,
                               ).coupleCallsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.coupleId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'couple_id',
                           typedResults: items,
                         ),
                     ];
@@ -3490,10 +3710,12 @@ typedef $$CouplesTableProcessedTableManager =
 typedef $$AuditoriesTableCreateCompanionBuilder = AuditoriesCompanion Function({
   Value<int> id,
   required String name,
+  Value<DateTime> updatedAt,
 });
 typedef $$AuditoriesTableUpdateCompanionBuilder = AuditoriesCompanion Function({
   Value<int> id,
   Value<String> name,
+  Value<DateTime> updatedAt,
 });
 
 final class $$AuditoriesTableReferences
@@ -3537,6 +3759,11 @@ class $$AuditoriesTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3584,6 +3811,11 @@ class $$AuditoriesTableOrderingComposer
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AuditoriesTableAnnotationComposer
@@ -3600,6 +3832,9 @@ class $$AuditoriesTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   Expression<T> coupleSubgroupsRefs<T extends Object>(
     Expression<T> Function($$CoupleSubgroupsTableAnnotationComposer a) f,
@@ -3656,11 +3891,18 @@ class $$AuditoriesTableTableManager
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
-          }) => AuditoriesCompanion(id: id, name: name),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) => AuditoriesCompanion.insert(id: id, name: name),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) => AuditoriesCompanion(id: id, name: name, updatedAt: updatedAt),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AuditoriesCompanion.insert(
+                id: id,
+                name: name,
+                updatedAt: updatedAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -3679,10 +3921,11 @@ class $$AuditoriesTableTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (coupleSubgroupsRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                       Auditory,
                       $AuditoriesTable,
-                      CoupleSubgroup
+                      CoupleSubgroup,
+                      $CoupleSubgroupsTable
                     >(
                       currentTable: table,
                       referencedTable: $$AuditoriesTableReferences
@@ -3693,8 +3936,8 @@ class $$AuditoriesTableTableManager
                             table,
                             p0,
                           ).coupleSubgroupsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.auditoryId == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'auditory_id',
                       typedResults: items,
                     ),
                 ];

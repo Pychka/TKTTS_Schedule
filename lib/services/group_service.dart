@@ -20,7 +20,15 @@ class GroupService implements ScheduleObjectService<Group, GroupModel> {
       final response = await http.get(Uri.parse('$baseUrl/group'));
       if(response.statusCode == 200){
         final List<dynamic> jsonList = jsonDecode(response.body);
-        result = ScheduleObjectMetadata(jsonList.map((json) => Group.fromJson(json)).toList(), ReceiptType.api);
+        final groups = jsonList.map((rawJson) {
+          final json = Map<String, dynamic>.from(rawJson as Map);
+          if (json['updatedAt'] == null) {
+            json['updatedAt'] = DateTime.now().toIso8601String();
+          }
+          return Group.fromJson(json);
+        }).toList();
+
+        result = ScheduleObjectMetadata(groups, ReceiptType.api);
         await updateMany(result.object);
       }
       else{
@@ -47,7 +55,7 @@ class GroupService implements ScheduleObjectService<Group, GroupModel> {
         return ScheduleObjectMetadata(newModel, ReceiptType.api);
       }
       if(response.statusCode == 204){
-        return ScheduleObjectMetadata(GroupModel(Group(id: id, name: ""), []), ReceiptType.mock);
+        return ScheduleObjectMetadata(GroupModel(Group(id: id, name: "",  updatedAt: DateTime.now()), []), ReceiptType.mock);
       }
       else{
         throw Exception('Не удалось загрузить группу');

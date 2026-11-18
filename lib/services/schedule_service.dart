@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/screens/additional/search_component.dart';
@@ -16,7 +15,6 @@ import 'package:tktts_schedule/ui_models/receipt_type.dart';
 import 'package:tktts_schedule/ui_models/schedule_object_metadata.dart';
 import 'package:tktts_schedule/ui_models/show_type.dart';
 import 'package:tktts_schedule/session_info.dart';
-import 'package:tktts_schedule/user_info.dart';
 
 class ScheduleService {
   final groupService = GroupService();
@@ -38,7 +36,7 @@ class ScheduleService {
   set currentModel(ScheduleObjectMetadata<BaseModel>? value){
     _currentModel = value;
     currentModelNotifier.value = value;
-    changeShow(_showType);
+    changeShow(type: _showType);
   }
 
   ShowType get showType => _showType;
@@ -46,7 +44,7 @@ class ScheduleService {
     _showType = showType;
     SessionInfo.instance.userInfo.showType = showType;
     StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
-    changeShow(_showType);
+    changeShow(type: _showType);
   }
 
 
@@ -103,7 +101,7 @@ class ScheduleService {
     _searchKey.currentState?.changeSelection(obj);
   }
 
-  void changeShow(ShowType type){
+  void changeShow({required ShowType type, DateTime? date}){
     if(_currentModel == null){
       return;
     }
@@ -117,6 +115,10 @@ class ScheduleService {
       break;
       case ShowType.fromToday:
         model.setLessonsToShow(model.lessons.where((element) => dateGreaterOrEquals(element.couple.date, DateTime.now())).toList());
+      break;
+      case ShowType.singleDay:
+        if(date == null) return;
+        model.setLessonsToShow(model.lessons.where((element) => dateGreaterOrEquals(element.couple.date, date)).toList());
       break;
     }
   }

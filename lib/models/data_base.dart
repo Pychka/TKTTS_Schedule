@@ -20,7 +20,7 @@ class DataBase extends _$DataBase {
   DataBase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'schedule_database');
@@ -103,19 +103,19 @@ class DataBase extends _$DataBase {
   Future<TeacherModel> getTeacherModelV2(int id) async {
     final lessons = await getLessons(coupleSubgroups.teacherId.equals(id));
     final teacher = await (select(teachers)..where((g) => g.id.equals(id))..limit(1)).getSingleOrNull();
-    return TeacherModel(teacher ?? Teacher(id: id, name: "Неизвестный преподаватель"), lessons);
+    return TeacherModel(teacher ?? Teacher(id: id, name: "Неизвестный преподаватель",  updatedAt: DateTime.now()), lessons);
   }
 
   Future<AuditoryModel> getAuditoryV2(int id) async {
     final lessons = await getLessons(coupleSubgroups.auditoryId.equals(id));
     final auditory = await (select(auditories)..where((g) => g.id.equals(id))..limit(1)).getSingleOrNull();
-    return AuditoryModel(auditory ?? Auditory(id: id, name: "Неизвестная аудитория"), lessons);
+    return AuditoryModel(auditory ?? Auditory(id: id, name: "Неизвестная аудитория",  updatedAt: DateTime.now()), lessons);
   }
 
   Future<GroupModel> getGroupModelV2(int id) async {
     final lessons = await getLessons(coupleSubgroups.groupId.equals(id));
     final group = await (select(groups)..where((g) => g.id.equals(id))..limit(1)).getSingleOrNull();
-    return GroupModel(group ?? Group(id: id, name: "Неизвестная группа"), lessons);
+    return GroupModel(group ?? Group(id: id, name: "Неизвестная группа",  updatedAt: DateTime.now()), lessons);
   }
 
   Future<List<LessonsModel>> getLessons(Expression<bool> expression) async {

@@ -16,6 +16,9 @@ class GroupModel extends BaseModel<Group> {
 
   factory GroupModel.fromJson(Map<String, dynamic> json) {
     final groupJson = Map<String, dynamic>.from(json)..remove('lessons');
+    if (!groupJson.containsKey('updatedAt') || groupJson['updatedAt'] == null) {
+      groupJson['updatedAt'] = DateTime.now().toIso8601String(); 
+    }
     final Group parsedGroup = Group.fromJson(groupJson);
     final List<dynamic> rawLessons = json['lessons'] as List<dynamic>? ?? [];
     List<dynamic> rawData;
@@ -32,9 +35,19 @@ class GroupModel extends BaseModel<Group> {
         }
       }
       rawData = lessonJson['teachers'] as List<dynamic>? ?? [];
-      List<Teacher> teachers = rawData.map((teacher) => Teacher.fromJson(teacher)).toList();
+      final nowIso = DateTime.now().toIso8601String();
+      List<Teacher> teachers = rawData.map((rawTeacher) {
+        final teacherJson = Map<String, dynamic>.from(rawTeacher as Map);
+        teacherJson['updatedAt'] ??= nowIso;
+        return Teacher.fromJson(teacherJson);
+      }).toList();
+
       rawData = lessonJson['auditories'] as List<dynamic>? ?? [];
-      List<Auditory> auditories = rawData.map((auditory) => Auditory.fromJson(auditory)).toList();
+      List<Auditory> auditories = rawData.map((rawAuditory) {
+        final auditoryJson = Map<String, dynamic>.from(rawAuditory as Map);
+        auditoryJson['updatedAt'] ??= nowIso;
+        return Auditory.fromJson(auditoryJson);
+      }).toList();
       final callData = lessonJson['call'];
       if (!lessonJson.containsKey('groupId') || lessonJson['groupId'] == null) {
         lessonJson['groupId'] = parsedGroup.id;
