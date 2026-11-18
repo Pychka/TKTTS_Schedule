@@ -169,7 +169,6 @@ class SearchComponentState extends State<SearchComponent> {
                         widget.onScheduleObjectSelected(group);
                       });
                       controller.closeView(group.name); 
-                      await SessionInfo.instance.scheduleService.uploadSchedule();
                     },
                   );
                 },
@@ -179,11 +178,10 @@ class SearchComponentState extends State<SearchComponent> {
       );
   }
 
-  void changeSelection(ScheduleObject obj){
+  void changeSelection(ScheduleObject? obj){
     setState(() {
       selectedObject = obj; 
-      _searchController.text = obj.name;
-      widget.onScheduleObjectSelected(obj);
+      _searchController.text = obj?.name ?? "";
     });
   }
 

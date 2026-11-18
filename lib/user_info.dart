@@ -4,7 +4,9 @@ import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/models/schedule_object.dart';
 import 'package:tktts_schedule/storage_service.dart';
 import 'package:tktts_schedule/ui_models/model_type.dart';
+import 'package:tktts_schedule/ui_models/road_map.dart';
 import 'package:tktts_schedule/ui_models/show_type.dart';
+import 'package:tktts_schedule/ui_models/tracked_object.dart';
 part 'user_info.g.dart';
 
 @HiveType(typeId: 1)
@@ -22,7 +24,62 @@ class UserInfo {
   @HiveField(5)
   Set<int> favoriteAuditories = {};
   @HiveField(6)
-  (int, ModelType)? trackedObject;
+  TrackedObject? trackedObject;
+  @HiveField(7, defaultValue: true)
+  bool saveRoadMap = true;
+  @HiveField(8)
+  RoadMap? roadMap;
+
+  bool back(){
+    if(roadMap == null) return false;
+
+    roadMap = roadMap!.previous;
+    StorageService.instance.saveUserInfo(this);
+    return true;
+  }
+
+  set saveRoadMapValue(bool value){
+    saveRoadMap = value;
+    if(!value){
+      roadMap = null;
+    }
+  }
+
+  void changeSelection(ScheduleObject obj){
+    if(!saveRoadMap){
+      return;
+    }
+
+    roadMap = RoadMap(
+      id: obj.id,
+      type: switch(obj){
+        Group _ => ModelType.group,
+        Teacher _ => ModelType.teacher,
+        Auditory _ => ModelType.auditory,
+        _ => throw Exception("Unsupported type")
+      },
+      previous: roadMap
+    );
+    StorageService.instance.saveUserInfo(this);
+  }
+
+  void startTrack(ScheduleObject? obj){
+    if(obj == null){
+      trackedObject = null;
+    }
+    else{
+      trackedObject = TrackedObject(
+        id: obj.id, 
+        type: switch(obj){
+          Group _ => ModelType.group,
+          Teacher _ => ModelType.teacher,
+          Auditory _ => ModelType.auditory,
+          _ => throw Exception("Unsupported type")
+        }
+      );
+    }
+    StorageService.instance.saveUserInfo(this);
+  }
 
   void addFavorite(ScheduleObject obj){
     final set = _getSet(obj);

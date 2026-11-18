@@ -22,13 +22,16 @@ class UserInfoAdapter extends TypeAdapter<UserInfo> {
       ..showType = fields[2] as ShowType
       ..favoriteGroups = (fields[3] as Set).cast<int>()
       ..favoriteTeachers = (fields[4] as Set).cast<int>()
-      ..favoriteAuditories = (fields[5] as Set).cast<int>();
+      ..favoriteAuditories = (fields[5] as Set).cast<int>()
+      ..trackedObject = fields[6] as TrackedObject?
+      ..saveRoadMap = fields[7] == null ? true : fields[7] as bool
+      ..roadMap = fields[8] as RoadMap?;
   }
 
   @override
   void write(BinaryWriter writer, UserInfo obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.coupleId)
       ..writeByte(1)
@@ -40,7 +43,13 @@ class UserInfoAdapter extends TypeAdapter<UserInfo> {
       ..writeByte(4)
       ..write(obj.favoriteTeachers)
       ..writeByte(5)
-      ..write(obj.favoriteAuditories);
+      ..write(obj.favoriteAuditories)
+      ..writeByte(6)
+      ..write(obj.trackedObject)
+      ..writeByte(7)
+      ..write(obj.saveRoadMap)
+      ..writeByte(8)
+      ..write(obj.roadMap);
   }
 
   @override

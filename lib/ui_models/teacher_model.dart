@@ -113,7 +113,7 @@ class TeacherModel extends BaseModel<Teacher> {
                 alignment: WrapAlignment.start,
                 children: [
                   TextButton(onPressed: () {
-                      SessionInfo.instance.scheduleService.changeModelToGroup(subgroup.group.id);
+                      SessionInfo.instance.scheduleService.changeModelToGroup(id: subgroup.group.id);
                     },
                     style: buttonStyle,
                     child: Row(
@@ -138,7 +138,7 @@ class TeacherModel extends BaseModel<Teacher> {
                     )
                   ),
                   TextButton(onPressed: () {
-                      SessionInfo.instance.scheduleService.changeModelToAuditory(subgroup.auditorie.id);
+                      SessionInfo.instance.scheduleService.changeModelToAuditory(id: subgroup.auditorie.id);
                     },
                     style: buttonStyle,
                     child: Row(

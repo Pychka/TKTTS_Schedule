@@ -1,4 +1,5 @@
 import 'package:hive_ce/hive_ce.dart';
+part 'model_type.g.dart';
 
 @HiveType(typeId: 3)
 enum ModelType {

@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import 'package:tktts_schedule/models/groups.dart';
-import 'package:tktts_schedule/models/calls.dart';
 
 class Couples extends Table {
   IntColumn get id => integer().autoIncrement()();

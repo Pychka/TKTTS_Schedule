@@ -120,7 +120,7 @@ class AuditoryModel extends BaseModel<Auditory> {
                 alignment: WrapAlignment.start,
                 children: [
                   TextButton(onPressed: () {
-                      SessionInfo.instance.scheduleService.changeModelToTeacher(subgroup.teacher.id);
+                      SessionInfo.instance.scheduleService.changeModelToTeacher(id: subgroup.teacher.id);
                     },
                     style: buttonStyle,
                     child: Row(
@@ -145,7 +145,7 @@ class AuditoryModel extends BaseModel<Auditory> {
                     )
                   ),
                   TextButton(onPressed: () {
-                      SessionInfo.instance.scheduleService.changeModelToGroup(subgroup.auditorie.id);
+                      SessionInfo.instance.scheduleService.changeModelToGroup(id: subgroup.auditorie.id);
                     },
                     style: buttonStyle,
                     child: Row(
