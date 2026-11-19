@@ -1,7 +1,9 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:tktts_schedule/nav_item.dart';
+import 'package:tktts_schedule/screens/additional/glass_container.dart';
 
 class MenuComponent extends StatefulWidget{
   final List<NavItem> navItems;
@@ -18,73 +20,88 @@ class MenuComponent extends StatefulWidget{
 
 class _MenuComponentState extends State<MenuComponent> with WidgetsBindingObserver {
   int _selectedIndex = 0;
+    double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
   @override
   Widget build(BuildContext context) {
+    double spacing = max(25.0 - (5 * max((widget.navItems.length - 2), 0)), 5);
+    double activeWeight = 1 + (1 / (widget.navItems.length + 1));
     return SafeArea(
       child: Container(
         margin: const EdgeInsets.only(right: 8.0, left: 8.0, bottom: 8.0),
-        child: 
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-            child: Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: const Color(0xC0dceeff), 
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Color(0x76FFFFFF), 
-                  width: 1.5,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 20,
-                children: List.generate(
-                  widget.navItems.length,
-                  (index) {
-                    final item = widget.navItems[index];
-                    final isSelected = _selectedIndex == index;
-                    return GestureDetector(
-                      onTap: () {
-                        _selectedIndex = index;
-                        widget.onTap(index);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOut,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isSelected ? 32.0 : 24.0,
-                          vertical: 12.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Color(0xFF8cafff) : Color(0xEEfafcff),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: Color.fromARGB(20, 0, 0, 0),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                )
-                              ]
-                            : [],
+        child: GlassContainer(
+          child: Padding(
+            padding: EdgeInsetsGeometry.all(8.0),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final count = widget.navItems.length;
+                final totalSpacing = spacing * (count - 1);
+                final availableWidth = constraints.maxWidth - totalSpacing;
+                final totalWeight = activeWeight + (count - 1);
+                final unitWidth = availableWidth / totalWeight;
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: spacing,
+                  children: List.generate(
+                    count,
+                    (index) {
+                      final item = widget.navItems[index];
+                      final isSelected = _selectedIndex == index;
+                      final itemWidth = isSelected ? unitWidth * activeWeight : unitWidth;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = index;
+                          });
+                          widget.onTap(index);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeInOut,
+                          width: itemWidth, // Плавная анимация ширины
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xB73FA2FF)
+                                : const Color(0xEEfafcff),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: isSelected
+                                ? [
+                                    const BoxShadow(
+                                      color: Color(0x20000000),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 2),
+                                    )
+                                  ]
+                                : [],
                           ),
-                        child: Icon(
-                          isSelected ? item.activeIcon : item.baseIcon,
-                          color: (isSelected ? Colors.white : Colors.black),
+                          child: Icon(
+                            isSelected ? item.activeIcon : item.baseIcon,
+                            color: isSelected
+                                ? const Color(0xDC126CC0)
+                                : Colors.blueGrey,
+                            shadows: [
+                              Shadow(
+                                offset: const Offset(0, 1),
+                                blurRadius: 1,
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+                      );
+                    },
+                  ),
+                );
+              }
+            )
+          )
+        )
+      )
     );
   }
 }
