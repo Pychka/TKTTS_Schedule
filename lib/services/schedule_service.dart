@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:tktts_schedule/models/data_base.dart';
-import 'package:tktts_schedule/screens/additional/search_component.dart';
+import 'package:tktts_schedule/screens/additional/search_component_v2.dart';
 import 'package:tktts_schedule/services/auditory_service.dart';
 import 'package:tktts_schedule/services/calls_service.dart';
 import 'package:tktts_schedule/services/couple_service.dart';
@@ -24,12 +24,11 @@ class ScheduleService {
   final auditoryService = AuditoryService();
   final callService = CallService();
   final coupleService = CoupleService();
-  late SearchComponent searchComponent;
   ScheduleObject? selectedObject;
   ScheduleObjectMetadata<BaseModel>? _currentModel;
   late List<ScheduleObject> objects;
   ValueNotifier<ScheduleObjectMetadata<BaseModel>?> currentModelNotifier = ValueNotifier(null);
-  final GlobalKey<SearchComponentState> _searchKey = GlobalKey<SearchComponentState>();
+  final GlobalKey<SearchComponentV2State> _searchKey = GlobalKey<SearchComponentV2State>();
   ShowType _showType = ShowType.all;
   DataBase dataBase = DataBase();
   Future<void> Function(ScheduleObject? object, Future<void> Function()? action)? onChangeModel;
@@ -83,7 +82,6 @@ class ScheduleService {
     final List<ScheduleObject> auditories = (results[2] as ScheduleObjectMetadata<List<ScheduleObject>>).object;
     objects = [...groups, ...teachers, ...auditories];
     objects.sort(compareObjects);
-    searchComponent = SearchComponent(key: _searchKey, objects: objects, onScheduleObjectSelected: onScheduleObjectSelected);
     if(objects.isNotEmpty && SessionInfo.instance.userInfo.saveRoadMap){
       changeModel(SessionInfo.instance.userInfo.roadMap);
     }

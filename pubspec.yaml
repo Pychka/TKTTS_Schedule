@@ -1,7 +1,7 @@
 name: tktts_schedule
 description: "A cross-platform app for TKTTS schedule"
 publish_to: 'none'
-version: 0.7.0+1
+version: 0.7.2+1
 
 environment:
   sdk: ^3.13.4
@@ -18,7 +18,7 @@ dependencies:
   hive_ce: ^2.20.0
   hive_ce_flutter: ^2.3.4
   flutter_localizations:
-      sdk: flutter
+    sdk: flutter
 
 flutter_launcher_icons:
   android: "launcher_icon"
