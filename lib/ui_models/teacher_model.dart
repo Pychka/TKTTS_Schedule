@@ -93,7 +93,7 @@ class TeacherModel extends BaseModel<Teacher> {
       children: [
         for(final subgroup in lesson.subgroups)
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start, 
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             spacing: 5,
             children: [
@@ -120,6 +120,10 @@ class TeacherModel extends BaseModel<Teacher> {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 5,
                       children: [
+                        const Icon(
+                          Icons.group_rounded,
+                          color: Colors.black87,
+                        ),
                         Text(
                           subgroup.group.name,
                           textAlign: TextAlign.center,
@@ -129,10 +133,6 @@ class TeacherModel extends BaseModel<Teacher> {
                             fontWeight: FontWeight.normal,
                             color: Colors.black87,
                           ),
-                        ),
-                        const Icon(
-                          Icons.person_rounded,
-                          color: Colors.black87,
                         ),
                       ],
                     )
@@ -145,6 +145,10 @@ class TeacherModel extends BaseModel<Teacher> {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 5,
                       children: [
+                        const Icon(
+                          Icons.door_back_door_rounded,
+                          color: Colors.black87,
+                        ),
                         Text(
                           subgroup.auditorie.name,
                           textAlign: TextAlign.center,
@@ -154,10 +158,6 @@ class TeacherModel extends BaseModel<Teacher> {
                             fontWeight: FontWeight.normal,
                             color: Colors.black87,
                           ),
-                        ),
-                        const Icon(
-                          Icons.group_rounded,
-                          color: Colors.black87,
                         ),
                       ],
                     )

@@ -127,6 +127,10 @@ class GroupModel extends BaseModel<Group> {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 5,
                       children: [
+                        const Icon(
+                          Icons.person_rounded,
+                          color: Colors.black87,
+                        ),
                         Text(
                           subgroup.teacher.name,
                           textAlign: TextAlign.center,
@@ -136,10 +140,6 @@ class GroupModel extends BaseModel<Group> {
                             fontWeight: FontWeight.normal,
                             color: Colors.black87,
                           ),
-                        ),
-                        const Icon(
-                          Icons.person_rounded,
-                          color: Colors.black87,
                         ),
                       ],
                     )
@@ -152,6 +152,10 @@ class GroupModel extends BaseModel<Group> {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 5,
                       children: [
+                        const Icon(
+                          Icons.door_back_door_rounded,
+                          color: Colors.black87,
+                        ),
                         Text(
                           subgroup.auditorie.name,
                           textAlign: TextAlign.center,
@@ -161,10 +165,6 @@ class GroupModel extends BaseModel<Group> {
                             fontWeight: FontWeight.normal,
                             color: Colors.black87,
                           ),
-                        ),
-                        const Icon(
-                          Icons.meeting_room,
-                          color: Colors.black87,
                         ),
                       ],
                     )

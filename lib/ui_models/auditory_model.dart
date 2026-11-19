@@ -127,6 +127,10 @@ class AuditoryModel extends BaseModel<Auditory> {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 5,
                       children: [
+                        const Icon(
+                          Icons.person_rounded,
+                          color: Colors.black87,
+                        ),
                         Text(
                           subgroup.teacher.name,
                           textAlign: TextAlign.center,
@@ -136,10 +140,6 @@ class AuditoryModel extends BaseModel<Auditory> {
                             fontWeight: FontWeight.normal,
                             color: Colors.black87,
                           ),
-                        ),
-                        const Icon(
-                          Icons.person_rounded,
-                          color: Colors.black87,
                         ),
                       ],
                     )
@@ -152,6 +152,10 @@ class AuditoryModel extends BaseModel<Auditory> {
                       mainAxisSize: MainAxisSize.min,
                       spacing: 5,
                       children: [
+                        const Icon(
+                          Icons.group_rounded,
+                          color: Colors.black87,
+                        ),
                         Text(
                           subgroup.group.name,
                           textAlign: TextAlign.center,
@@ -161,10 +165,6 @@ class AuditoryModel extends BaseModel<Auditory> {
                             fontWeight: FontWeight.normal,
                             color: Colors.black87,
                           ),
-                        ),
-                        const Icon(
-                          Icons.group_rounded,
-                          color: Colors.black87,
                         ),
                       ],
                     )
