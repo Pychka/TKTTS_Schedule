@@ -26,7 +26,7 @@ class AuditoryModel extends BaseModel<Auditory> {
     for(final rawLesson in rawLessons){
       final lessonJson = Map<String, dynamic>.from(rawLesson as Map);
       if (!lessonJson.containsKey('id') || lessonJson['id'] == null) {
-        lessonJson['id'] = 0; 
+        lessonJson['id'] = SessionInfo.instance.userInfo.coupleId++;; 
       }
       if (lessonJson['date'] is String) {
         final String rawDate = lessonJson['date'] as String;
@@ -47,9 +47,6 @@ class AuditoryModel extends BaseModel<Auditory> {
         return Teacher.fromJson(teacherJson);
       }).toList();
       final callData = lessonJson['call'];
-      if (!callData.containsKey('id') || callData['id'] == null) {
-        callData['id'] = 0;
-      }
       if (!lessonJson.containsKey('groupId') || lessonJson['groupId'] == null) {
         lessonJson['groupId'] = parsedGroup.id;
       }
@@ -63,7 +60,7 @@ class AuditoryModel extends BaseModel<Auditory> {
         couple = couple.copyWith(lessonTime: drift.Value<int?>(call.time), lessonWeekday: drift.Value<int?>(call.weekday));
       }
       final lesson = LessonsModel(
-        Couple.fromJson(lessonJson),
+        couple,
         [CoupleSubgroupModel(couple, teachers.first, parsedAuditory, parsedGroup, couple.subgroup)],
         call
       );
@@ -145,7 +142,7 @@ class AuditoryModel extends BaseModel<Auditory> {
                     )
                   ),
                   TextButton(onPressed: () {
-                      SessionInfo.instance.scheduleService.changeModelToGroup(id: subgroup.auditorie.id);
+                      SessionInfo.instance.scheduleService.changeModelToGroup(id: subgroup.group.id);
                     },
                     style: buttonStyle,
                     child: Row(
