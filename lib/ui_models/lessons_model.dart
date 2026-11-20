@@ -1,4 +1,3 @@
-import 'package:flutter/rendering.dart';
 import 'package:tktts_schedule/date_time_to_int.dart';
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/ui_models/couple_subgroup_model.dart';
@@ -15,7 +14,7 @@ class LessonsModel {
   );
 
   bool isCurrent() {
-    int now = DateTime(2026, 11, 20, 10, 30).toInt();
+    int now = DateTime.now().toInt();
     int start = couple.date.toInt() + stringToMinute(call.timeStart);
     int end = couple.date.toInt() + stringToMinute(call.timeEnd);
     return now >= start && now <= end;
