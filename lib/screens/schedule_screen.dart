@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -151,113 +152,129 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                           final lessons = value.object.groupedLessons.values.toList();
                           double size = screenWidth;
                           double currentSize;
-                          return Container(
-                            margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                            child: SingleChildScrollView(
-                              padding: EdgeInsets.fromLTRB(0, value.receiptType == ReceiptType.db ? 130.0 : 80.0, 0, 84),
-                              child: Wrap(
-                              spacing: 16.0,
-                              runSpacing: 24.0,
-                              alignment: WrapAlignment.center,
-                              children: List.generate(dates.length, (index) {
-                                final currentDate = dates[index];
-                                final currentLessons = lessons[index];
-                                if(size < 442){
-                                  size = screenWidth;
-                                }
-                                currentSize = min(size, min((8 + 408 * 3).toDouble(), 824));
-                                size -= (currentSize + 26);
-                                String rawDay = DateFormat('EEEE, dd.MM.yyyy').format(currentDate);
-                                return SizedBox(
-                                  width: currentSize,
+                          return SingleChildScrollView(
+                            padding: EdgeInsets.fromLTRB(0, value.receiptType == ReceiptType.db ? 130.0 : 80.0, 0, 84),
+                            child: Wrap(
+                            spacing: 24.0,
+                            runSpacing: 16.0,
+                            alignment: WrapAlignment.center,
+                            children: List.generate(dates.length, (index) {
+                              final currentDate = dates[index];
+                              final currentLessons = lessons[index];
+                              if(size < 442){
+                                size = screenWidth;
+                              }
+                              currentSize = getSize(610, 1232, screenWidth, space: 24);
+                              size -= (currentSize + 26);
+                              String rawDay = DateFormat('EEEE, dd.MM.yyyy').format(currentDate);
+                              return SizedBox(
+                                width: currentSize,
+                                child: Card(
+                                  color: const Color.fromARGB(255, 229, 241, 253),
+                                  elevation: 0,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     spacing: 8,
                                     children: [
-                                      Text(
-                                        '${rawDay[0].toUpperCase()}${rawDay.substring(1)}',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.w400
+                                      Padding(
+                                        padding: EdgeInsetsGeometry.fromLTRB(10, 6, 0, 0),
+                                        child: Text(
+                                          '${rawDay[0].toUpperCase()}${rawDay.substring(1)}',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 25,
+                                            fontWeight: FontWeight.w400
+                                          ),
                                         ),
-                                      ),                              
+                                      ),
+                                      Divider(),
                                       Wrap(
-                                        spacing: 8.0,
-                                        runSpacing: 8.0,
-                                        children: currentLessons.map((lesson) {
+                                        spacing: 15.0,
+                                        runSpacing: 10.0,
+                                        children: currentLessons.mapIndexed((index, lesson) {
                                           return SizedBox(
-                                            width: min(screenWidth, 400),
+                                            width: getSize(300, 610, currentSize, screenSpace: 10, space: 15),
                                             child: Card(
-                                              color: const Color(0xFFdceeff),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(10),
-                                                child: Column(
-                                                  spacing: 20,
-                                                  children: [
-                                                    Row(
-                                                      spacing: 30,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      crossAxisAlignment: CrossAxisAlignment.center, 
-                                                      children: [
-                                                        Expanded(
-                                                          child: Column(
-                                                            spacing: 5,
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            mainAxisSize: MainAxisSize.min,
-                                                            children: [
-                                                              Row(
-                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                children:[
-                                                                  Text(
-                                                                    "${lesson.call.time} пара",
-                                                                    textScaler: scaler,
-                                                                    textAlign: TextAlign.center,
-                                                                    style: const TextStyle(
-                                                                      fontSize: 16,
-                                                                      fontWeight: FontWeight.w900
+                                              elevation: 0,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(15)
+                                              ),
+                                              clipBehavior: Clip.antiAlias, 
+                                              color: lesson.isCurrent() ? Color.fromARGB(255, 173, 215, 255) : Colors.transparent,
+                                              child: InkWell(
+                                                onTap: () {
+                                                  
+                                                },
+                                                splashColor: Color.fromARGB(123, 235, 245, 255),
+                                                highlightColor: Color.fromARGB(100, 235, 245, 255),  
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(10),
+                                                  child: Column(
+                                                    spacing: 10,
+                                                    children: [
+                                                      Row(
+                                                        spacing: 30,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        crossAxisAlignment: CrossAxisAlignment.center, 
+                                                        children: [
+                                                          Expanded(
+                                                            child: Column(
+                                                              spacing: 5,
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                Row(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                  children:[
+                                                                    Text(
+                                                                      "${lesson.call.time} пара",
+                                                                      textScaler: scaler,
+                                                                      textAlign: TextAlign.center,
+                                                                      style: const TextStyle(
+                                                                        fontSize: 16,
+                                                                        fontWeight: FontWeight.w900
+                                                                      ),
                                                                     ),
-                                                                  ),
-                                                                  Text(
-                                                                    "${lesson.call.timeStart} - ${lesson.call.timeEnd}",
-                                                                    textScaler: scaler,
-                                                                    style: const TextStyle(
-                                                                      fontSize: 16,
-                                                                      fontWeight: FontWeight.bold
+                                                                    Text(
+                                                                      "${lesson.call.timeStart} - ${lesson.call.timeEnd}",
+                                                                      textScaler: scaler,
+                                                                      style: const TextStyle(
+                                                                        fontSize: 16,
+                                                                        fontWeight: FontWeight.bold
+                                                                      ),
                                                                     ),
-                                                                  ),
-                                                                ]
-                                                              ),
-                                                              Divider(),
-                                                              Text(
-                                                                lesson.couple.subject,
-                                                                textScaler: scaler,
-                                                                style: const TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight: FontWeight.bold
+                                                                  ]
                                                                 ),
-                                                              ),
-                                                              Center(
-                                                                child: value.object.getFooter(lesson),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        )
-                                                      ],
-                                                    )
-                                                  ],
+                                                                Text(
+                                                                  lesson.couple.subject,
+                                                                  textScaler: scaler,
+                                                                  style: const TextStyle(
+                                                                    fontSize: 16,
+                                                                    fontWeight: FontWeight.bold
+                                                                  ),
+                                                                ),
+                                                                Center(
+                                                                  child: value.object.getFooter(lesson),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          )
+                                                        ],
+                                                      )
+                                                    ],
+                                                  )
                                                 )
-                                              )
+                                              ),
                                             )
                                           );
                                         }).toList()
                                       ),
                                     ]
-                                  )
-                                );
-                              })
-                            )
+                                  ),
+                                ),
+                              );
+                            })
                           )
                         );
                       },
@@ -396,6 +413,42 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
         );
       }
     }
+  }
+  
+  double getSize(double min, double max, double screenWidth, { double space = 16, double screenSpace = 10, bool show = false }){
+    final double available = screenWidth - screenSpace;
+    if (available <= min) {
+      return available > 0 ? available : screenWidth;
+    }
+    final double avg = (min + max) / 2;
+    int count = (available + space) ~/ (avg + space);
+    if(count < 1) count = 1;
+
+    double width = (available - space * (count - 1)) / count;
+    if(width > max){
+      final int correctionalCount = count + 1;
+      final double correctionalWidth = (available - space * (correctionalCount - 1)) / correctionalCount;
+      if(correctionalWidth >= min) return correctionalWidth;
+      return max;
+    }
+
+    return width;
+  }
+  
+  double getSizeV1(double min, double max, double screenWidth, { double space = 16, double screenSpace = 10, bool show = false }){
+    if(min > screenWidth){
+      return screenWidth;
+    }
+    double avg = (min + max) / 2;
+    double spaceToFill = (screenWidth - screenSpace);
+    if(spaceToFill <= avg){
+      avg = min;
+    }
+    int countBlocks = (spaceToFill ~/ avg);
+    spaceToFill -= space * (countBlocks - 1);
+    countBlocks = (spaceToFill ~/ avg);
+    double k = (spaceToFill % avg) / countBlocks;
+    return avg + k;
   }
 
   @override
