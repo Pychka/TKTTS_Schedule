@@ -20,14 +20,14 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   final List<NavItem> _navItems = const [
     NavItem(
       Icons.table_chart_outlined,
-      Icons.table_chart,
+      Icons.table_chart_rounded,
     ),
     NavItem(
       Icons.person_outline,
       Icons.person,
     ),
     NavItem(
-      Icons.settings_outlined,
+      Icons.settings,
       Icons.settings,
     ),
   ];

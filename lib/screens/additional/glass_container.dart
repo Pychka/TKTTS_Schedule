@@ -14,7 +14,7 @@ class GlassContainer extends StatelessWidget {
     BorderRadius? borderRadius,
     this.backgroundColor = const Color(0x6C71BAFF),
     this.borderColor = const Color(0x6CD3EAFF),
-    this.blurSigma = 3.5,
+    this.blurSigma = 4.5,
   }) : borderRadius = borderRadius ?? BorderRadius.circular(20.0);
 
   @override

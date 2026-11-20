@@ -62,7 +62,7 @@ class _MenuComponentState extends State<MenuComponent> with WidgetsBindingObserv
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 250),
                           curve: Curves.easeInOut,
-                          width: itemWidth, // Плавная анимация ширины
+                          width: itemWidth,
                           padding: const EdgeInsets.symmetric(vertical: 12.0),
                           decoration: BoxDecoration(
                             color: isSelected
@@ -82,13 +82,14 @@ class _MenuComponentState extends State<MenuComponent> with WidgetsBindingObserv
                           child: Icon(
                             isSelected ? item.activeIcon : item.baseIcon,
                             color: isSelected
-                                ? const Color(0xDC126CC0)
+                                ? Colors.white.withValues(alpha: 0.8)
                                 : Colors.blueGrey,
+                            size: isSelected ? 25 : 22,
                             shadows: [
                               Shadow(
-                                offset: const Offset(0, 1),
-                                blurRadius: 1,
-                                color: Colors.white.withValues(alpha: 0.8),
+                                offset: isSelected ? Offset(0, 1.5) : Offset(0, 0),
+                                blurRadius: 1.5,
+                                color: const Color(0xDC126CC0),
                               ),
                             ],
                           ),

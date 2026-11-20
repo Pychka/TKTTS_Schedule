@@ -28,8 +28,8 @@ class SearchComponentV2State extends State<SearchComponentV2> {
   Widget build(BuildContext context) {
     const textStyle = TextStyle(
       color: Colors.white,
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
+      fontWeight: FontWeight.w900,
+      fontSize: 20,
     );
     final iconButtonStyle = IconButton.styleFrom(
       backgroundColor: Color(0xFF3FA2FF),
@@ -45,175 +45,170 @@ class SearchComponentV2State extends State<SearchComponentV2> {
         .toList()
       ..sort(SessionInfo.instance.scheduleService.compareObjects);
 
-    return GlassContainer(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            height: 70,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      focusNode: _focusNode,
-                      style: textStyle,
-                      cursorColor: Colors.white,
-                      decoration: const InputDecoration(
-                        hintText: 'Выберите из списка...',
-                        hintStyle: textStyle,
-                        border: InputBorder.none,
-                        isDense: true,
-                      ),
-                      onTap: () {
-                        setState(() {
-                          _isExpanded = true;
-                        });
-                      },
-                      onChanged: (_) {
-                        setState(() {
-                          _isExpanded = true;
-                        });
-                      },
-                    ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  focusNode: _focusNode,
+                  style: textStyle,
+                  cursorColor: Colors.white,
+                  decoration: const InputDecoration(
+                    hintText: 'Выберите из списка...',
+                    hintStyle: textStyle,
+                    border: InputBorder.none,
+                    isDense: true,
                   ),
-                  if (_isExpanded)
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () {
-                        setState(() {
-                          if (_searchController.text.isNotEmpty) {
-                            _searchController.clear();
-                          } else {
-                            _isExpanded = false;
-                            _focusNode.unfocus();
-                          }
-                        });
-                      },
-                    ),
-                  Theme(
-                    data: Theme.of(context).copyWith(
-                      splashColor: const Color.fromARGB(183, 0, 0, 0),
-                      highlightColor: const Color(0xB73FA2FF),
-                    ),
-                    child: PopupMenuButton<ShowType>(
-                      icon: const Icon(Icons.filter_list, color: Colors.white, size: 32),
-                      tooltip: 'Тип отображения',
-                      style: iconButtonStyle,
-                      menuPadding: EdgeInsets.zero,
-                      color: Colors.transparent,
-                      clipBehavior: Clip.antiAlias,
-                      elevation: 0, 
-                      initialValue: SessionInfo.instance.userInfo.showType,
-                      onSelected: (ShowType type) {
-                        setState(() {
-                          SessionInfo.instance.scheduleService.showType = type;
-                        });
-                      },
-                      itemBuilder: (BuildContext popupContext) => [
-                        PopupMenuItem<ShowType>(
-                          enabled: false,
-                          padding: EdgeInsets.zero,
-                          child: GlassContainer(
-                            blurSigma: 4.5,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                                  child: Text(
-                                    'Тип отображения',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                const Divider(height: 1, color: Colors.white),
-                                _buildGlassMenuItem(popupContext, ShowType.all, "Полностью"),
-                                _buildGlassMenuItem(popupContext, ShowType.fromToday, "С текущего дня"),
-                                _buildGlassMenuItem(popupContext, ShowType.today, "Текущий день"),
-                                _buildGlassMenuItem(popupContext, ShowType.singleDay, "Отдельные дни", isLast: true),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  )
-                ],
+                  onTap: () {
+                    setState(() {
+                      _isExpanded = true;
+                    });
+                  },
+                  onChanged: (_) {
+                    setState(() {
+                      _isExpanded = true;
+                    });
+                  },
+                ),
               ),
-            )
-          ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeInOut,
-            child: _isExpanded
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Divider(height: 1, color: Colors.white54),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxHeight: 260),
-                        child: groupedData.isEmpty
-                            ? const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Text(
-                                  'Ничего не найдено',
-                                  style: TextStyle(color: Colors.white, fontSize: 16),
+              if (_isExpanded)
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      if (_searchController.text.isNotEmpty) {
+                        _searchController.clear();
+                      } else {
+                        _isExpanded = false;
+                        _focusNode.unfocus();
+                      }
+                    });
+                  },
+                ),
+              Theme(
+                data: Theme.of(context).copyWith(
+                  splashColor: Colors.transparent,
+                  highlightColor: const Color(0xB73FA2FF),
+                ),
+                child: PopupMenuButton<ShowType>(
+                  icon: const Icon(Icons.filter_list, color: Colors.white, size: 32),
+                  tooltip: 'Тип отображения',
+                  style: iconButtonStyle,
+                  menuPadding: EdgeInsets.zero,
+                  color: Colors.transparent,
+                  clipBehavior: Clip.antiAlias,
+                  elevation: 0, 
+                  initialValue: SessionInfo.instance.userInfo.showType,
+                  onSelected: (ShowType type) {
+                    setState(() {
+                      SessionInfo.instance.scheduleService.showType = type;
+                    });
+                  },
+                  itemBuilder: (BuildContext popupContext) => [
+                    PopupMenuItem<ShowType>(
+                      enabled: false,
+                      padding: EdgeInsets.zero,
+                      child: GlassContainer(
+                        blurSigma: 4.5,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                              child: Text(
+                                'Тип отображения',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
                                 ),
-                              )
-                            : ListView.builder(
-                                shrinkWrap: true,
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                itemCount: groupedData.length,
-                                itemBuilder: (context, index) {
-                                  final group = groupedData[index];
-                                  return StatefulBuilder(
-                                    builder: (context, setStateLocal) {
-                                      return ListTile(
-                                        dense: true,
-                                        splashColor: const Color(0x663FA2FF),
-                                        title: Text(
-                                          group.name,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        trailing: IconButton(
-                                          onPressed: () {
-                                            setStateLocal(() {
-                                              SessionInfo.instance.userInfo.addFavorite(group);
-                                            });
-                                          },
-                                          icon: SessionInfo.instance.userInfo.getFavoriteIcon(group),
-                                        ),
-                                        onTap: () {
-                                          setState(() {
-                                            selectedObject = group;
-                                            _searchController.text = group.name;
-                                            _isExpanded = false;
-                                          });
-                                          _focusNode.unfocus();
-                                          widget.onScheduleObjectSelected(group);
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
                               ),
+                            ),
+                            const Divider(height: 1, color: Colors.white),
+                            _buildGlassMenuItem(popupContext, ShowType.all, "Полностью"),
+                            _buildGlassMenuItem(popupContext, ShowType.fromToday, "С текущего дня"),
+                            _buildGlassMenuItem(popupContext, ShowType.today, "Текущий день"),
+                            _buildGlassMenuItem(popupContext, ShowType.singleDay, "Отдельные дни", isLast: true),
+                          ],
+                        ),
                       ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
+                    ),
+                  ],
+                )
+              )
+            ],
           ),
-        ],
-      )
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          child: _isExpanded
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Divider(height: 1, color: Colors.white54),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 260),
+                      child: groupedData.isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                'Ничего не найдено',
+                                style: TextStyle(color: Colors.white, fontSize: 16),
+                              ),
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              itemCount: groupedData.length,
+                              itemBuilder: (context, index) {
+                                final group = groupedData[index];
+                                return StatefulBuilder(
+                                  builder: (context, setStateLocal) {
+                                    return ListTile(
+                                      dense: true,
+                                      splashColor: const Color(0x663FA2FF),
+                                      title: Text(
+                                        group.name,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      trailing: IconButton(
+                                        onPressed: () {
+                                          setStateLocal(() {
+                                            SessionInfo.instance.userInfo.addFavorite(group);
+                                          });
+                                        },
+                                        icon: SessionInfo.instance.userInfo.getFavoriteIcon(group),
+                                      ),
+                                      onTap: () {
+                                        setState(() {
+                                          selectedObject = group;
+                                          _searchController.text = group.name;
+                                          _isExpanded = false;
+                                        });
+                                        _focusNode.unfocus();
+                                        widget.onScheduleObjectSelected(group);
+                                      },
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 

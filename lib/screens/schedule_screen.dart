@@ -58,9 +58,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    double headerSize = (SessionInfo.instance.scheduleService.currentModel != null && SessionInfo.instance.scheduleService.currentModel!.receiptType == ReceiptType.db)
-      ? 145.0
-      : 80.0;
     final scaler = TextScaler.linear(1);
     return PopScope(
       canPop: false, 
@@ -157,7 +154,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                           return Container(
                             margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                             child: SingleChildScrollView(
-                              padding: EdgeInsets.fromLTRB(0, headerSize, 0, 84),
+                              padding: EdgeInsets.fromLTRB(0, value.receiptType == ReceiptType.db ? 130.0 : 80.0, 0, 84),
                               child: Wrap(
                               spacing: 16.0,
                               runSpacing: 24.0,
@@ -306,10 +303,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                           ListenableBuilder(
                             listenable: SessionInfo.instance.scheduleService.currentModelNotifier,
                             builder: (context, child) {
-                              if(SessionInfo.instance.scheduleService.currentModel == null) {
+                              final value = SessionInfo.instance.scheduleService.currentModelNotifier.value;
+                              if(value == null) {
                                 return const SizedBox.shrink();
                               }
-                              final value = SessionInfo.instance.scheduleService.currentModel!;
                               switch(value.receiptType){
                                 case ReceiptType.db:
                                   String rawDay = DateFormat('dd.MM.yyyy HH:mm').format(value.object.scheduleObject.updatedAt);
@@ -322,7 +319,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                         color: Color(0xFFFFFFFF),
                                       ),
                                       Padding(
-                                        padding: EdgeInsetsGeometry.fromLTRB(0, 2.5, 0, 10),
+                                        padding: EdgeInsetsGeometry.fromLTRB(0, 0, 0, 10),
                                         child: Text(
                                           'Расписание актуально с $rawDay',
                                           style: TextStyle(
