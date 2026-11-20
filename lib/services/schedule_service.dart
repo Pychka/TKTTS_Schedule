@@ -158,23 +158,23 @@ class ScheduleService {
 
   Future updateFavorites({SessionInfo? sessionInfo}) async{
     final session = sessionInfo ?? SessionInfo.instance;
-    if(session.userInfo.favoriteGroups.isNotEmpty){
-      await update(dataBase.getGroups(session.userInfo.favoriteGroups), groupService);
+
+    if (session.userInfo.favoriteGroups.isNotEmpty) {
+      await _updateByIds(session.userInfo.favoriteGroups, groupService);
     }
-    if(session.userInfo.favoriteAuditories.isNotEmpty){
-      await update(dataBase.getAuditories(session.userInfo.favoriteAuditories), auditoryService);
+    if (session.userInfo.favoriteAuditories.isNotEmpty) {
+      await _updateByIds(session.userInfo.favoriteAuditories, auditoryService);
     }
-    if(session.userInfo.favoriteTeachers.isNotEmpty){
-      await update(dataBase.getTeachers(session.userInfo.favoriteTeachers), teacherService);
+    if (session.userInfo.favoriteTeachers.isNotEmpty) {
+      await _updateByIds(session.userInfo.favoriteTeachers, teacherService);
     }
   }
 
-  Future update(Future<List<ScheduleObject>> objects, ScheduleObjectService service) async {
-    final objs = await objects;
-    for(final obj in objs){
-      final model = await service.get(id: obj.id);
-      if (model.receiptType != ReceiptType.api) {
-        throw Exception('Нет интернета: данные из БД');
+  Future<void> _updateByIds(Iterable<int> ids, ScheduleObjectService service) async {
+    for (final id in ids) {
+      final model = await service.get(id: id);
+      if (model.receiptType == ReceiptType.api) {
+        await service.update(model.object);
       }
     }
   }

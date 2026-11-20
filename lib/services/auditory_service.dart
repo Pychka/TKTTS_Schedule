@@ -80,12 +80,12 @@ class AuditoryService implements ScheduleObjectService<Auditory, AuditoryModel> 
         newLessons.removeAt(collision);
       }
     }
-    // in oldLessons lessons to remove
-    // in newLessons lessons to add
     if (oldLessons.isNotEmpty) {
       final idsToDelete = oldLessons.map((l) => l.couple.id).toList();
       await SessionInfo.instance.scheduleService.dataBase.deleteCouplesByIds(idsToDelete); 
     }
+
+   await SessionInfo.instance.scheduleService.dataBase.updateAuditories([newModel.scheduleObject]);
 
     if (newLessons.isNotEmpty) {
       final modelToSave = AuditoryModel(newModel.scheduleObject, newLessons);
