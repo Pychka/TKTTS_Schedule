@@ -1,3 +1,5 @@
+import 'package:flutter/rendering.dart';
+import 'package:tktts_schedule/date_time_to_int.dart';
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/ui_models/couple_subgroup_model.dart';
 
@@ -11,6 +13,18 @@ class LessonsModel {
     this.subgroups,
     this.call
   );
+
+  bool isCurrent() {
+    int now = DateTime(2026, 11, 20, 10, 30).toInt();
+    int start = couple.date.toInt() + stringToMinute(call.timeStart);
+    int end = couple.date.toInt() + stringToMinute(call.timeEnd);
+    return now >= start && now <= end;
+  }
+
+  static int stringToMinute(String time){
+    final parts = time.split(':');
+    return parts.length == 2 ? int.parse(parts[0]) * 60 + int.parse(parts[1]) : 0;
+  }
 
   int collision(List<LessonsModel> newLessons) {
     return newLessons.indexWhere((lesson) {
@@ -42,4 +56,5 @@ class LessonsModel {
       couple.subgroup == oldCouple.subgroup &&
       couple.groupId == oldCouple.groupId;
   }
+
 }
