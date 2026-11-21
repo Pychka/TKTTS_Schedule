@@ -58,16 +58,3 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     );
   }
 }
-
-class Person{
-  int calculate(int a, int b, {
-    int c = 0,
-    int d = 0
-  }){
-    return a + b + c + d;
-  }
-
-  void start(){
-    debugPrint(calculate(11, 12, c: 20).toString());
-  } 
-}
