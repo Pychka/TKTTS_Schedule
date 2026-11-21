@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/services/schedule_object_service.dart';
@@ -49,7 +50,18 @@ class AuditoryService implements ScheduleObjectService<Auditory, AuditoryModel> 
       final response = await http.get(Uri.parse('$baseUrl/auditory/$id?timetable=true${from == null ? "" : "&fromDate=$from"}'));
       if(response.statusCode == 200){
         Map<String, dynamic> data = json.decode(response.body);
-        return ScheduleObjectMetadata(AuditoryModel.fromJson(data), ReceiptType.api);
+        final newModel = AuditoryModel.fromJson(data);
+        
+        final db = SessionInfo.instance.scheduleService.dataBase;
+        final all = await (db.select(db.couples)
+              ..where((c) => c.groupId.equals(newModel.scheduleObject.id)))
+            .get();
+        final nullWeekday = all.where((c) => c.lessonWeekday == null).length;
+        final nullTime = all.where((c) => c.lessonTime == null).length;
+        debugPrint('DB: всего ${all.length}, nullWeekday=$nullWeekday, nullTime=$nullTime');
+        debugPrint('API: ${newModel.lessons.length}');
+        final changes = await update(newModel);
+        return ScheduleObjectMetadata(newModel, ReceiptType.api, changes: (changes.$1, changes.$2));
       }
       if(response.statusCode == 204){
         return ScheduleObjectMetadata(AuditoryModel(Auditory(id: id, name: "",  updatedAt: DateTime.now()), []), ReceiptType.mock);
@@ -67,14 +79,16 @@ class AuditoryService implements ScheduleObjectService<Auditory, AuditoryModel> 
   }
 
   @override
-  Future update(AuditoryModel newModel) async {
+  Future<(List<LessonsModel> removed, List<LessonsModel> added, String name)> update(AuditoryModel newModel) async {
     AuditoryModel oldModel = await SessionInfo.instance.scheduleService.dataBase.getAuditoryV2(newModel.scheduleObject.id);
     List<LessonsModel> oldLessons = List.from(oldModel.lessons);
     List<LessonsModel> newLessons = List.from(newModel.lessons);
+    
+    debugPrint('before ${oldLessons.length} ${newLessons.length} ${newModel.scheduleObject.name}');
     LessonsModel oldLesson;
     for(int i = 0; i < oldLessons.length; i++){
       oldLesson = oldLessons[i];
-      final collision = oldLesson.collision(newLessons);
+      final collision = oldLesson.collision(newLessons, auditoryId: newModel.scheduleObject.id);
       if(collision != -1){
         oldLessons.removeAt(i--);
         newLessons.removeAt(collision);
@@ -91,6 +105,13 @@ class AuditoryService implements ScheduleObjectService<Auditory, AuditoryModel> 
       final modelToSave = AuditoryModel(newModel.scheduleObject, newLessons);
       await modelToSave.save();
     }
+
+
+debugPrint('after ${oldLessons.length} ${newLessons.length} ${newModel.scheduleObject.name}');
+for (final l in newLessons) {
+  debugPrint('  НЕ СОВПАЛА ПАРА: date=${l.couple.date}, time=${l.call.time}, subj=${l.couple.subject}, subs=${l.subgroups.length}');
+}
+    return (oldLessons.toList(), newLessons.toList(), newModel.scheduleObject.name);
   }
 
   @override

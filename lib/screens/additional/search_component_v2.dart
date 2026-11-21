@@ -92,7 +92,7 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                 ),
               Theme(
                 data: Theme.of(context).copyWith(
-                  splashColor: Colors.transparent,
+                  splashColor: const Color.fromARGB(183, 133, 167, 199),
                   highlightColor: const Color(0xB73FA2FF),
                 ),
                 child: PopupMenuButton<ShowType>(
@@ -218,19 +218,22 @@ class SearchComponentV2State extends State<SearchComponentV2> {
       ? const BorderRadius.vertical(bottom: Radius.circular(20))
       : BorderRadius.zero;
 
-    return InkWell(
-      onTap: () => Navigator.pop(popupContext, value),
-      borderRadius: radius,
-      child: Container(
-        width: double.infinity,
-        color:  isSelected ? Color(0xB73FA2FF) : Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Text(
-          title,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => Navigator.pop(popupContext, value),
+        borderRadius: radius,
+        child: Container(
+          width: double.infinity,
+          color:  isSelected ? Color(0xB73FA2FF) : Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+            ),
           ),
         ),
       ),

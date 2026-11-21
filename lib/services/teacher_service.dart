@@ -51,8 +51,8 @@ class TeacherService implements ScheduleObjectService<Teacher, TeacherModel> {
       if(response.statusCode == 200){
         Map<String, dynamic> data = json.decode(response.body);
         final newModel = TeacherModel.fromJson(data);
-        await update(newModel);
-        return ScheduleObjectMetadata(newModel, ReceiptType.api);
+        final changes = await update(newModel);
+        return ScheduleObjectMetadata(newModel, ReceiptType.api, changes: (changes.$1, changes.$2));
       }
       if(response.statusCode == 204){
         return ScheduleObjectMetadata(TeacherModel(Teacher(id: id, name: "",  updatedAt: DateTime.now()), []), ReceiptType.mock);
@@ -70,14 +70,14 @@ class TeacherService implements ScheduleObjectService<Teacher, TeacherModel> {
   }
 
   @override
-  Future update(TeacherModel newModel) async {
+  Future<(List<LessonsModel> removed, List<LessonsModel> added, String name)> update(TeacherModel newModel) async {
     TeacherModel oldModel = await SessionInfo.instance.scheduleService.dataBase.getTeacherModelV2(newModel.scheduleObject.id);
     List<LessonsModel> oldLessons = List.from(oldModel.lessons);
     List<LessonsModel> newLessons = List.from(newModel.lessons);
     LessonsModel oldLesson;
     for(int i = 0; i < oldLessons.length; i++){
       oldLesson = oldLessons[i];
-      final collision = oldLesson.collision(newLessons);
+      final collision = oldLesson.collision(newLessons, teacherId: newModel.scheduleObject.id);
       if(collision != -1){
         oldLessons.removeAt(i--);
         newLessons.removeAt(collision);
@@ -94,6 +94,7 @@ class TeacherService implements ScheduleObjectService<Teacher, TeacherModel> {
       final modelToSave = TeacherModel(newModel.scheduleObject, newLessons);
       await modelToSave.save();
     }
+    return (oldLessons.toList(), newLessons.toList(), newModel.scheduleObject.name);
   }
 
   @override

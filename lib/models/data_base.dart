@@ -20,7 +20,7 @@ class DataBase extends _$DataBase {
   DataBase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'schedule_database');
@@ -38,6 +38,11 @@ class DataBase extends _$DataBase {
         }
         await m.createAll();
       },
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA journal_mode=WAL;');
+        await customStatement('PRAGMA busy_timeout=5000;');
+        await customStatement('PRAGMA foreign_keys = ON;');
+      },
     );
   }
 
@@ -46,7 +51,12 @@ class DataBase extends _$DataBase {
       batch.insertAll(
         this.teachers,
         teachers,
-        mode: InsertMode.insertOrReplace
+        onConflict: DoUpdate<Teachers, Teacher>.withExcluded(
+          (old, excluded) => TeachersCompanion.custom(
+            name: excluded.name,
+            updatedAt: excluded.updatedAt,
+          ),
+        ),
       );
     });
   }
@@ -56,7 +66,12 @@ class DataBase extends _$DataBase {
       batch.insertAll(
         this.auditories,
         auditories,
-        mode: InsertMode.insertOrReplace
+        onConflict: DoUpdate<Auditories, Auditory>.withExcluded(
+          (old, excluded) => AuditoriesCompanion.custom(
+            name: excluded.name,
+            updatedAt: excluded.updatedAt,
+          ),
+        ),
       );
     });
   }
@@ -66,7 +81,12 @@ class DataBase extends _$DataBase {
       batch.insertAll(
         this.groups,
         groups,
-        mode: InsertMode.insertOrReplace
+        onConflict: DoUpdate<Groups, Group>.withExcluded(
+          (old, excluded) => GroupsCompanion.custom(
+            name: excluded.name,
+            updatedAt: excluded.updatedAt,
+          ),
+        ),
       );
     });
   }
@@ -76,7 +96,17 @@ class DataBase extends _$DataBase {
       batch.insertAll(
         this.couples,
         couples,
-        mode: InsertMode.insertOrReplace
+        onConflict: DoUpdate<Couples, Couple>.withExcluded(
+          (old, excluded) => CouplesCompanion.custom(
+            subgroup: excluded.subgroup,
+            date: excluded.date,
+            lessonTime: excluded.lessonTime,
+            lessonWeekday: excluded.lessonWeekday,
+            subject: excluded.subject,
+            week: excluded.week,
+            weekDay: excluded.weekDay
+          ),
+        ),
       );
     });
   }
@@ -86,7 +116,13 @@ class DataBase extends _$DataBase {
       batch.insertAll(
         this.coupleCalls,
         coupleCalls,
-        mode: InsertMode.insertOrReplace
+        onConflict: DoUpdate<CoupleCalls, CoupleCall>.withExcluded(
+          (old, excluded) => CoupleCallsCompanion.custom(
+            coupleId: excluded.coupleId,
+            lessonTime: excluded.lessonTime,
+            lessonWeekday: excluded.lessonWeekday,
+          ),
+        ),
       );
     });
   }
@@ -95,7 +131,14 @@ class DataBase extends _$DataBase {
       batch.insertAll(
         this.calls,
         calls,
-        mode: InsertMode.insertOrIgnore
+        onConflict: DoUpdate<Calls, Call>.withExcluded(
+          (old, excluded) => CallsCompanion.custom(
+            time: excluded.time,
+            weekday: excluded.weekday,
+            timeEnd: excluded.timeEnd,
+            timeStart: excluded.timeStart,
+          ),
+        ),
       );
     });
   }

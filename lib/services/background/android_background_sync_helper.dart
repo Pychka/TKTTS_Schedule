@@ -7,7 +7,6 @@ class AndroidBackgroundSyncHelper {
 
   static Future<void> schedulePeriodicSync(int minutes) async {
     if (kIsWeb || !Platform.isAndroid) return;
-
     final validMinutes = minutes.clamp(15, 120);
 
     await NativeWorkManager.cancel(taskId: _taskId);

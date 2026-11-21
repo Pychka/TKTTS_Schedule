@@ -1,6 +1,4 @@
 import 'dart:math';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:tktts_schedule/nav_item.dart';
 import 'package:tktts_schedule/screens/additional/glass_container.dart';
@@ -86,11 +84,12 @@ class _MenuComponentState extends State<MenuComponent> with WidgetsBindingObserv
                                 : Colors.blueGrey,
                             size: isSelected ? 25 : 22,
                             shadows: [
-                              Shadow(
-                                offset: isSelected ? Offset(0, 1.5) : Offset(0, 0),
-                                blurRadius: 1.5,
-                                color: const Color(0xDC126CC0),
-                              ),
+                              if(isSelected)
+                                Shadow(
+                                  offset: Offset(0, 1.5),
+                                  blurRadius: 1.5,
+                                  color: const Color(0xDC126CC0),
+                                ),
                             ],
                           ),
                         ),

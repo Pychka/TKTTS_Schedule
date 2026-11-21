@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tktts_schedule/nav_item.dart';
 import 'package:tktts_schedule/screens/additional/menu_component.dart';
 import 'package:tktts_schedule/screens/schedule_screen.dart';
+import 'package:tktts_schedule/screens/settings_screen.dart';
 
 class MainScreen extends StatefulWidget{
   const MainScreen({super.key});
@@ -15,7 +16,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   final List<Widget> _screens = [
     const ScheduleScreen(),
     const Center(child:  Text('Экран профиля'),),
-    const Center(child: Text('Экран настроек приложения')),
+    const Center(child: SettingsScreen()),
   ];
   final List<NavItem> _navItems = const [
     NavItem(
@@ -56,4 +57,17 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       )
     );
   }
+}
+
+class Person{
+  int calculate(int a, int b, {
+    int c = 0,
+    int d = 0
+  }){
+    return a + b + c + d;
+  }
+
+  void start(){
+    debugPrint(calculate(11, 12, c: 20).toString());
+  } 
 }

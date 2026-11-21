@@ -1,10 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:native_workmanager/native_workmanager.dart';
 import 'package:tktts_schedule/screens/main_screen.dart';
+import 'package:tktts_schedule/services/background/android_background_sync_helper.dart';
+import 'package:tktts_schedule/services/background/sync_schedule_worker.dart';
+import 'package:tktts_schedule/services/notifications/android_notification_service.dart';
 import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/storage_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/foundation.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +19,17 @@ void main() async {
   SessionInfo.instance.init();
   await initializeDateFormatting('ru', null);
   Intl.defaultLocale = 'ru'; 
-  // SessionInfo.instance.startApp(kIsWeb);
+  if(Platform.isAndroid){
+    await NativeWorkManager.initialize(
+      dartWorkers: {
+        'sync-schedule': syncScheduleWorker,
+      },
+      registerPlugins: true,
+      debugMode: kDebugMode,
+    );
+    await AndroidNotificationService.init(requestPermissions: true);
+    await AndroidBackgroundSyncHelper.schedulePeriodicSync(SessionInfo.instance.userInfo.syncIntervalMinutes);
+  }
   // if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
   //   await Workmanager().initialize(
   //     MobileBackgroundService.callbackDispatcher, 

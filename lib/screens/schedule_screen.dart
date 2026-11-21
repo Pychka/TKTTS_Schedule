@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -203,7 +202,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                               color: lesson.isCurrent() ? Color.fromARGB(255, 173, 215, 255) : Colors.transparent,
                                               child: InkWell(
                                                 onTap: () {
-                                                  
+
                                                 },
                                                 splashColor: Color.fromARGB(123, 235, 245, 255),
                                                 highlightColor: Color.fromARGB(100, 235, 245, 255),  

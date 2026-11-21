@@ -1,16 +1,19 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/screens/additional/search_component_v2.dart';
 import 'package:tktts_schedule/services/auditory_service.dart';
 import 'package:tktts_schedule/services/calls_service.dart';
 import 'package:tktts_schedule/services/couple_service.dart';
 import 'package:tktts_schedule/services/group_service.dart';
+import 'package:tktts_schedule/services/notifications/android_notification_service.dart';
 import 'package:tktts_schedule/services/schedule_object_service.dart';
 import 'package:tktts_schedule/services/teacher_service.dart';
 import 'package:tktts_schedule/models/schedule_object.dart';
 import 'package:tktts_schedule/storage_service.dart';
 import 'package:tktts_schedule/ui_models/base_model.dart';
+import 'package:tktts_schedule/ui_models/lessons_model.dart';
 import 'package:tktts_schedule/ui_models/model_type.dart';
 import 'package:tktts_schedule/ui_models/receipt_type.dart';
 import 'package:tktts_schedule/ui_models/road_map.dart';
@@ -160,21 +163,42 @@ class ScheduleService {
     final session = sessionInfo ?? SessionInfo.instance;
 
     if (session.userInfo.favoriteGroups.isNotEmpty) {
-      await _updateByIds(session.userInfo.favoriteGroups, groupService);
+      await _updateByIds(session.userInfo.favoriteGroups, groupService, 'у', 1);
     }
     if (session.userInfo.favoriteAuditories.isNotEmpty) {
-      await _updateByIds(session.userInfo.favoriteAuditories, auditoryService);
+      await _updateByIds(session.userInfo.favoriteAuditories, auditoryService, 'в', 2);
     }
     if (session.userInfo.favoriteTeachers.isNotEmpty) {
-      await _updateByIds(session.userInfo.favoriteTeachers, teacherService);
+      await _updateByIds(session.userInfo.favoriteTeachers, teacherService, 'у', 3);
     }
   }
-
-  Future<void> _updateByIds(Iterable<int> ids, ScheduleObjectService service) async {
+  Future<void> _updateByIds(Iterable<int> ids, ScheduleObjectService service, String prefix, int k) async {
     for (final id in ids) {
       final model = await service.get(id: id);
       if (model.receiptType == ReceiptType.api) {
-        await service.update(model.object);
+        if(model.changes.$1.length < 10 && model.changes.$2.length < 10){
+          for(LessonsModel lesson in model.changes.$1){
+            await AndroidNotificationService.showScheduleChanged(
+              id: lesson.couple.id,
+              title: 'Отменили ${DateFormat('dd.MM').format(lesson.couple.date)} ${lesson.call.timeStart} - ${lesson.call.timeEnd} $prefix ${model.object.scheduleObject.name}',
+              body: lesson.couple.subject,
+            );
+          }
+          for(LessonsModel lesson in model.changes.$2){
+            await AndroidNotificationService.showScheduleChanged(
+              id: lesson.couple.id,
+              title: 'Добавили ${DateFormat('dd.MM').format(lesson.couple.date)} ${lesson.call.timeStart} - ${lesson.call.timeEnd} $prefix ${model.object.scheduleObject.name}',
+              body: lesson.couple.subject,
+            );
+          }
+        }
+        else{
+          await AndroidNotificationService.showScheduleChanged(
+            id: model.object.scheduleObject.id + 10_000 * k,
+            title: 'Обновление в расписании $prefix ${model.object.scheduleObject.name}',
+            body: 'Удалено: ${model.changes.$1.length}\nДобавлено: ${model.changes.$2.length}',
+          );
+        }
       }
     }
   }

@@ -25,13 +25,17 @@ class UserInfoAdapter extends TypeAdapter<UserInfo> {
       ..favoriteAuditories = (fields[5] as Set).cast<int>()
       ..trackedObject = fields[6] as TrackedObject?
       ..saveRoadMap = fields[7] == null ? true : fields[7] as bool
-      ..roadMap = fields[8] as RoadMap?;
+      ..roadMap = fields[8] as RoadMap?
+      ..lastSync = fields[9] as DateTime?
+      ..syncIntervalMinutes = fields[10] == null
+          ? 60
+          : (fields[10] as num).toInt();
   }
 
   @override
   void write(BinaryWriter writer, UserInfo obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.coupleId)
       ..writeByte(1)
@@ -49,7 +53,11 @@ class UserInfoAdapter extends TypeAdapter<UserInfo> {
       ..writeByte(7)
       ..write(obj.saveRoadMap)
       ..writeByte(8)
-      ..write(obj.roadMap);
+      ..write(obj.roadMap)
+      ..writeByte(9)
+      ..write(obj.lastSync)
+      ..writeByte(10)
+      ..write(obj.syncIntervalMinutes);
   }
 
   @override

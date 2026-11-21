@@ -29,6 +29,10 @@ class UserInfo {
   bool saveRoadMap = true;
   @HiveField(8)
   RoadMap? roadMap;
+  @HiveField(9)
+  DateTime? lastSync;
+  @HiveField(10, defaultValue: 60)
+  int syncIntervalMinutes = 60;
 
   bool back(){
     if(roadMap == null) return false;

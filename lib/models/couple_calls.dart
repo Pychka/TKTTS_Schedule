@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:tktts_schedule/models/couples.dart';
+import 'package:tktts_schedule/models/calls.dart';
 
 class CoupleCalls extends Table {
   IntColumn get coupleId => integer().references(Couples, #id, onDelete: KeyAction.cascade)();
