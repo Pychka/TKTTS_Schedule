@@ -25,23 +25,32 @@ class LessonsModel {
     return parts.length == 2 ? int.parse(parts[0]) * 60 + int.parse(parts[1]) : 0;
   }
 
-  int collision(List<LessonsModel> newLessons) {
+  int collision(List<LessonsModel> newLessons, {int? auditoryId, int? teacherId}) {
     return newLessons.indexWhere((lesson) {
       final isBaseEqual = coupleIsEquals(lesson.couple, couple) && lesson.call.time == call.time;
-
       if (!isBaseEqual) return false;
 
-     if(lesson.subgroups.length != subgroups.length) return false;
-     for(final subgroup in lesson.subgroups){
-      if(!subgroups.any((s) => 
-        s.auditorie.id == subgroup.auditorie.id
-        && s.teacher.id == subgroup.teacher.id
-        && s.group.id == subgroup.group.id
-        && s.number == subgroup.number)){
+      bool matchesFilter(CoupleSubgroupModel s) {
+        if (auditoryId != null && s.auditorie.id != auditoryId) return false;
+        if (teacherId != null && s.teacher.id != teacherId) return false;
+        return true;
+      }
+
+      final mySubs = subgroups.where(matchesFilter).toList();
+      final otherSubs = lesson.subgroups.where(matchesFilter).toList();
+
+      if (mySubs.length != otherSubs.length) return false;
+
+      for (final subgroup in otherSubs) {
+        if (!mySubs.any((s) =>
+            s.auditorie.id == subgroup.auditorie.id &&
+            s.teacher.id == subgroup.teacher.id &&
+            s.group.id == subgroup.group.id &&
+            s.number == subgroup.number)) {
           return false;
         }
-     }
-      
+      }
+
       return true;
     });
   }
@@ -52,7 +61,8 @@ class LessonsModel {
       couple.date.month == oldCouple.date.month &&
       couple.date.day == oldCouple.date.day &&
       couple.subject == oldCouple.subject &&
-      couple.subgroup == oldCouple.subgroup &&
+      couple.week == oldCouple.week &&
+      couple.weekDay == oldCouple.weekDay &&
       couple.groupId == oldCouple.groupId;
   }
 
