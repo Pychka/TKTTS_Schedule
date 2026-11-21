@@ -56,9 +56,10 @@ class AuditoryModel extends BaseModel<Auditory> {
       }
       
       final call = Call.fromJson(callData);
-      if(couple.lessonTime == null){
-        couple = couple.copyWith(lessonTime: drift.Value<int?>(call.time), lessonWeekday: drift.Value<int?>(call.weekday));
-      }
+      couple = couple.copyWith(
+        lessonTime:    drift.Value<int?>(call.time),
+        lessonWeekday: drift.Value<int?>(call.weekday),
+      );
       final lesson = LessonsModel(
         couple,
         [CoupleSubgroupModel(couple, teachers.first, parsedAuditory, parsedGroup, couple.subgroup)],

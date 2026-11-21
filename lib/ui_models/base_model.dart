@@ -50,8 +50,8 @@ class BaseModel<T extends ScheduleObject> extends ChangeNotifier {
       await SessionInfo.instance.scheduleService.dataBase.updateAuditories(auditories);
       await SessionInfo.instance.scheduleService.dataBase.updateTeachers(teachers);
       await SessionInfo.instance.scheduleService.dataBase.updateGroups(groups);
-      await SessionInfo.instance.scheduleService.dataBase.updateCouples(lessons.map((e) => e.couple));
       await SessionInfo.instance.scheduleService.dataBase.updateCalls(lessons.map((e) => e.call));
+      await SessionInfo.instance.scheduleService.dataBase.updateCouples(lessons.map((e) => e.couple));
       await SessionInfo.instance.scheduleService.dataBase.updateCoupleCall(
         lessons.map((l) => 
           CoupleCall(coupleId: l.couple.id, lessonTime: l.call.time, lessonWeekday: l.call.weekday)
