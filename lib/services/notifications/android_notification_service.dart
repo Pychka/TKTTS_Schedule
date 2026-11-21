@@ -7,7 +7,7 @@ class AndroidNotificationService {
   static Future<void> init({bool requestPermissions = false}) async {
     if (_isInitialized) return;
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
     const initSettings = InitializationSettings(android: androidSettings);
 
     await _plugin.initialize(settings: initSettings);

@@ -53,15 +53,6 @@ class GroupService implements ScheduleObjectService<Group, GroupModel> {
         Map<String, dynamic> data = json.decode(response.body);
         final newModel = GroupModel.fromJson(data);
         
-        final db = SessionInfo.instance.scheduleService.dataBase;
-        final all = await (db.select(db.couples)
-              ..where((c) => c.groupId.equals(newModel.scheduleObject.id)))
-            .get();
-        final nullWeekday = all.where((c) => c.lessonWeekday == null).length;
-        final nullTime = all.where((c) => c.lessonTime == null).length;
-        debugPrint('DB: всего ${all.length}, nullWeekday=$nullWeekday, nullTime=$nullTime');
-        debugPrint('API: ${newModel.lessons.length}');
-        
         final changes = await update(newModel);
         return ScheduleObjectMetadata(newModel, ReceiptType.api, changes: (changes.$1, changes.$2));
       }
@@ -85,7 +76,6 @@ class GroupService implements ScheduleObjectService<Group, GroupModel> {
     GroupModel oldModel = await SessionInfo.instance.scheduleService.dataBase.getGroupModelV2(newModel.scheduleObject.id);
     List<LessonsModel> oldLessons = List.from(oldModel.lessons);
     List<LessonsModel> newLessons = List.from(newModel.lessons);
-    debugPrint('before ${oldLessons.length} ${newLessons.length} ${newModel.scheduleObject.name}');
     LessonsModel oldLesson;
     for(int i = 0; i < oldLessons.length; i++){
       oldLesson = oldLessons[i];
@@ -96,8 +86,6 @@ class GroupService implements ScheduleObjectService<Group, GroupModel> {
         newLessons.removeAt(collision);
       }
     }
-    // in oldLessons lessons to remove
-    // in newLessons lessons to add
     if (oldLessons.isNotEmpty) {
       final idsToDelete = oldLessons.map((l) => l.couple.id).toList();
       await SessionInfo.instance.scheduleService.dataBase.deleteCouplesByIds(idsToDelete); 
@@ -107,10 +95,7 @@ class GroupService implements ScheduleObjectService<Group, GroupModel> {
       final modelToSave = GroupModel(newModel.scheduleObject, newLessons);
       await modelToSave.save();
     }
-debugPrint('after ${oldLessons.length} ${newLessons.length} ${newModel.scheduleObject.name}');
-for (final l in newLessons) {
-  debugPrint('  НЕ СОВПАЛА ПАРА: date=${l.couple.date}, time=${l.call.time}, subj=${l.couple.subject}, subs=${l.subgroups.length}');
-}
+
     return (oldLessons, newLessons, newModel.scheduleObject.name);
   }
 
