@@ -10,7 +10,6 @@ import 'package:tktts_schedule/services/notifications/android_notification_servi
 import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/storage_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/foundation.dart';
 
 
 void main() async {
@@ -25,25 +24,11 @@ void main() async {
         'sync-schedule': syncScheduleWorker,
       },
       registerPlugins: true,
-      debugMode: kDebugMode,
     );
     await AndroidNotificationService.init(requestPermissions: true);
     await AndroidBackgroundSyncHelper.schedulePeriodicSync(SessionInfo.instance.userInfo.syncIntervalMinutes);
   }
-  // if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-  //   await Workmanager().initialize(
-  //     MobileBackgroundService.callbackDispatcher, 
-  //   );
-    
-  //   await Workmanager().registerPeriodicTask(
-  //     "schedule_sync_id",
-  //     MobileBackgroundService.fetchScheduleTask,
-  //     frequency: const Duration(minutes: 16),
-  //     constraints: Constraints(networkType: NetworkType.connected),
-  //     existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
-  //   );
-  // }
-
+  
   runApp(const MainApp());
 }
 

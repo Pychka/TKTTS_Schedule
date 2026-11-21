@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
-import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/services/schedule_object_service.dart';
