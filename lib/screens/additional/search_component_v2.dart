@@ -40,6 +40,7 @@ class SearchComponentV2State extends State<SearchComponentV2> {
     );
 
     final query = _searchController.text.toLowerCase();
+    
     final groupedData = widget.objects
         .where((group) => group.name.toLowerCase().contains(query))
         .toList()
@@ -51,6 +52,7 @@ class SearchComponentV2State extends State<SearchComponentV2> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
           child: Row(
+            spacing: 0,
             children: [
               Expanded(
                 child: TextField(
@@ -77,19 +79,29 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                 ),
               ),
               if (_isExpanded)
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () {
-                    setState(() {
-                      if (_searchController.text.isNotEmpty) {
-                        _searchController.clear();
-                      } else {
+                ...[
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () {
+                      setState(() {
+                        if (_searchController.text.isNotEmpty) {
+                          _searchController.clear();
+                        } else {
+                          _isExpanded = false;
+                          _focusNode.unfocus();
+                        }
+                      });
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
+                    onPressed: () {
+                      setState(() {
                         _isExpanded = false;
-                        _focusNode.unfocus();
-                      }
-                    });
-                  },
-                ),
+                      });
+                    },
+                  ),
+                ],
               Theme(
                 data: Theme.of(context).copyWith(
                   splashColor: const Color.fromARGB(183, 133, 167, 199),
@@ -148,65 +160,65 @@ class SearchComponentV2State extends State<SearchComponentV2> {
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeInOut,
           child: _isExpanded
-              ? Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Divider(height: 1, color: Colors.white54),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 260),
-                      child: groupedData.isEmpty
-                          ? const Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Text(
-                                'Ничего не найдено',
-                                style: TextStyle(color: Colors.white, fontSize: 16),
-                              ),
-                            )
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              itemCount: groupedData.length,
-                              itemBuilder: (context, index) {
-                                final group = groupedData[index];
-                                return StatefulBuilder(
-                                  builder: (context, setStateLocal) {
-                                    return ListTile(
-                                      dense: true,
-                                      splashColor: const Color(0x663FA2FF),
-                                      title: Text(
-                                        group.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      trailing: IconButton(
-                                        onPressed: () {
-                                          setStateLocal(() {
-                                            SessionInfo.instance.userInfo.addFavorite(group);
-                                          });
-                                        },
-                                        icon: SessionInfo.instance.userInfo.getFavoriteIcon(group),
-                                      ),
-                                      onTap: () {
-                                        setState(() {
-                                          selectedObject = group;
-                                          _searchController.text = group.name;
-                                          _isExpanded = false;
-                                        });
-                                        _focusNode.unfocus();
-                                        widget.onScheduleObjectSelected(group);
-                                      },
-                                    );
-                                  },
-                                );
-                              },
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Divider(height: 1, color: Colors.white54),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 260),
+                    child: groupedData.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              'Ничего не найдено',
+                              style: TextStyle(color: Colors.white, fontSize: 16),
                             ),
-                    ),
-                  ],
-                )
-              : const SizedBox.shrink(),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            itemCount: groupedData.length,
+                            itemBuilder: (context, index) {
+                              final group = groupedData[index];
+                              return StatefulBuilder(
+                                builder: (context, setStateLocal) {
+                                  return ListTile(
+                                    dense: true,
+                                    splashColor: const Color(0x663FA2FF),
+                                    title: Text(
+                                      group.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    trailing: IconButton(
+                                      onPressed: () {
+                                        setStateLocal(() {
+                                          SessionInfo.instance.userInfo.addFavorite(group);
+                                        });
+                                      },
+                                      icon: SessionInfo.instance.userInfo.getFavoriteIcon(group),
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        selectedObject = group;
+                                        _searchController.text = group.name;
+                                        _isExpanded = false;
+                                      });
+                                      _focusNode.unfocus();
+                                      widget.onScheduleObjectSelected(group);
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              )
+            : const SizedBox.shrink(),
         ),
       ],
     );
@@ -218,22 +230,19 @@ class SearchComponentV2State extends State<SearchComponentV2> {
       ? const BorderRadius.vertical(bottom: Radius.circular(20))
       : BorderRadius.zero;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => Navigator.pop(popupContext, value),
-        borderRadius: radius,
-        child: Container(
-          width: double.infinity,
-          color:  isSelected ? Color(0xB73FA2FF) : Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Text(
-            title,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
-            ),
+    return InkWell(
+      onTap: () => Navigator.pop(popupContext, value),
+      borderRadius: radius,
+      child: Container(
+        width: double.infinity,
+        color:  isSelected ? Color(0xB73FA2FF) : Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
           ),
         ),
       ),
