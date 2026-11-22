@@ -11,8 +11,8 @@ class SessionInfo{
   static final SessionInfo instance = SessionInfo._internal();
 
   void init(){
-    scheduleService = ScheduleService(null);
     userInfo = StorageService.instance.getUserInfo() ?? UserInfo();
+    scheduleService = ScheduleService(null);
     scheduleService.showType = userInfo.showType;
   }
 }

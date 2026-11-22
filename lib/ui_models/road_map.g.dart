@@ -19,20 +19,26 @@ class RoadMapAdapter extends TypeAdapter<RoadMap> {
     return RoadMap(
       id: (fields[0] as num).toInt(),
       type: fields[1] as ModelType,
+      showType: fields[3] == null ? ShowType.today : fields[3] as ShowType,
       previous: fields[2] as RoadMap?,
+      selectedDate: fields[4] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, RoadMap obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.type)
       ..writeByte(2)
-      ..write(obj.previous);
+      ..write(obj.previous)
+      ..writeByte(3)
+      ..write(obj.showType)
+      ..writeByte(4)
+      ..write(obj.selectedDate);
   }
 
   @override

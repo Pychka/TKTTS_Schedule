@@ -49,7 +49,7 @@ class UserInfo {
     }
   }
 
-  void changeSelection(ScheduleObject obj){
+  void changeSelection(ScheduleObject obj, { DateTime? selectedDate }){
     if(!saveRoadMap){
       return;
     }
@@ -62,7 +62,9 @@ class UserInfo {
         Auditory _ => ModelType.auditory,
         _ => throw Exception("Unsupported type")
       },
-      previous: roadMap
+      previous: roadMap,
+      showType: showType,
+      selectedDate: selectedDate
     );
     StorageService.instance.saveUserInfo(this);
   }
