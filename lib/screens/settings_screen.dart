@@ -1,10 +1,17 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:tktts_schedule/get_size.dart';
 import 'package:tktts_schedule/screens/additional/settings/updates_screen.dart';
+import 'package:tktts_schedule/ui_models/settings_group.dart';
 
 class SettingsScreen extends StatefulWidget{
-  const SettingsScreen({super.key});
+  final List<SettingsGroup> groups;
+  const SettingsScreen({
+    required this.groups,
+    super.key
+  });
 
   @override
   State<StatefulWidget> createState() => _SettingsScreenState();
@@ -31,7 +38,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
     return PopScope(
       canPop: false, 
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
-        debugPrint(didPop.toString());
         if (didPop) return;
 
         final bool shouldLeave = await showDialog<bool>(
@@ -62,32 +68,85 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
           Navigator.of(context).pop();
         }
       },
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-        child: Column(
-          spacing: 10,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Text(
-              "Настройки",
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
+      child: LayoutBuilder(builder: (context, constraints) {
+        return Padding(
+          padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(0, 10, 0, 84),
+            child: Wrap(
+              spacing: 10,
+              children: 
+                List.generate(widget.groups.length, (index) {
+                  final group = widget.groups[index];
+                  return SizedBox(
+                    width: getSize(400, constraints.maxWidth, space: 10, screenSpace: 10),
+                    child: Card(
+                      color: const Color(0xFFE5F1FD),
+                      child: Padding(
+                        padding:  EdgeInsetsGeometry.symmetric(horizontal: 12, vertical: 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsetsGeometry.fromLTRB(8, 8, 8, 0), 
+                                  child: Icon(
+                                    group.icon,
+                                    size: 30,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    group.title,
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if(group.widgets.isNotEmpty)
+                              ...group.widgets
+                          ],
+                        ),
+                      )
+                    ),
+                  );
+                }
+              )
             ),
-            Divider(),
-            _getButton(
-              Icons.system_update_alt_rounded,
-              "Обновление",
-              nav: UpdatesScreen()
-            ),
-            _getButton(
-              Icons.notifications_active_rounded,
-              "Уведомления"
-            ),
-          ],
-        ),
-      )
+          ),
+        );
+      })
     );
   }
+/*
+Column(
+  spacing: 10,
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    Text(
+      "Настройки",
+      style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
+    ),
+    Divider(),
+    _getButton(
+      Icons.system_update_alt_rounded,
+      "Обновление",
+      nav: UpdatesScreen()
+    ),
+    _getButton(
+      Icons.notifications_active_rounded,
+      "Уведомления"
+    ),
+  ],
+),
 
+*/
   ElevatedButton _getButton(IconData icon, String text, { Widget? nav}){
     return ElevatedButton(
       style: buttonStyle,

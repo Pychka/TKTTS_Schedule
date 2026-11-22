@@ -12,9 +12,9 @@ class GlassContainer extends StatelessWidget {
     super.key,
     required this.child,
     BorderRadius? borderRadius,
-    this.backgroundColor = const Color(0x6C71BAFF),
-    this.borderColor = const Color(0x6CD3EAFF),
-    this.blurSigma = 4.5,
+    this.backgroundColor = const Color(0x7C71BAFF),
+    this.borderColor = const Color(0x7CD3EAFF),
+    this.blurSigma = 5.5,
   }) : borderRadius = borderRadius ?? BorderRadius.circular(20.0);
 
   @override
@@ -32,7 +32,10 @@ class GlassContainer extends StatelessWidget {
               width: 1,
             ),
           ),
-          child: child,
+          child: Material(
+            type: MaterialType.transparency, 
+            child: child,
+          ),
         ),
       ),
     );

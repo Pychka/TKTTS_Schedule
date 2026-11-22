@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tktts_schedule/screens/additional/wheel_picker.dart';
-import 'package:tktts_schedule/services/background/android_background_sync_helper.dart';
+import 'package:tktts_schedule/screens/additional/wheel_picker_v2.dart';
 import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/storage_service.dart';
 
@@ -13,75 +12,42 @@ class UpdatesScreen extends StatefulWidget{
 
 class _UpdatesScreenState extends State<UpdatesScreen> with WidgetsBindingObserver {
   int currentValue = SessionInfo.instance.userInfo.syncIntervalMinutes;
-  final buttonStyle = ElevatedButton.styleFrom(
-    foregroundColor: Colors.white,
-    backgroundColor: Colors.blueAccent,
-    padding: EdgeInsets.symmetric(vertical: 7, horizontal: 10),
-    elevation: 3, 
-    shadowColor: Colors.black.withValues(alpha: 0.5),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(10)),
-    ),
-  ); 
+
   final textStyle = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.bold
+    fontSize: 16,
+    fontWeight: FontWeight.normal
   );
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFf4faff),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                    onPressed: () async {
-                      if(currentValue != SessionInfo.instance.userInfo.syncIntervalMinutes){
-                        SessionInfo.instance.userInfo.syncIntervalMinutes = currentValue;
-                        StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
-                        await AndroidBackgroundSyncHelper.schedulePeriodicSync(currentValue);
-                      }
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    }
-                  ),
-                  Expanded(
-                    child: Text(
-                      "Обновления",
-                      style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                'Обновлять расписание через:',
-                style: textStyle,
-              ),
-              WheelPicker(
-                initialMinutes: SessionInfo.instance.userInfo.syncIntervalMinutes,
-                onChanged: (val) => currentValue = val,
-                labelBuilder: (val) {
-                  int hours = val ~/ 60;
-                  int minutes = val % 60;
-                  return '${hours > 0 ? '$hours ч. ' : ''}${minutes > 0 ? '$minutes мин.' : ''}'; 
-                } 
-              ),
-            ],
+    return Padding(
+      padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 10,
+        children: [
+          Text(
+            'Автообновление:',
+            style: textStyle,
           ),
-        )
-      )
+          Expanded(
+            child: WheelPickerV2(
+              initialValue: SessionInfo.instance.userInfo.syncIntervalMinutes,
+              values: List.generate(22, (i) => 15 + i * 5),
+              onChanged: (val) {
+                currentValue = val;
+                SessionInfo.instance.userInfo.syncIntervalMinutes = val;
+                StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
+              },
+              labelBuilder: (val) {
+                int hours = val ~/ 60;
+                int minutes = val % 60;
+                return '${hours > 0 ? '$hours ч. ' : ''}${minutes > 0 ? '$minutes мин.' : ''}'; 
+              } 
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
