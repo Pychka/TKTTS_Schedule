@@ -4,11 +4,14 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:tktts_schedule/get_size.dart';
 import 'package:tktts_schedule/models/schedule_object.dart';
 import 'package:tktts_schedule/screens/additional/glass_container.dart';
 import 'package:tktts_schedule/screens/additional/search_component_v2.dart';
+import 'package:tktts_schedule/screens/additional/wheel_picker_v2.dart';
 import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/ui_models/receipt_type.dart';
+import 'package:tktts_schedule/ui_models/show_type.dart';
 
 class ScheduleScreen extends StatefulWidget{
   const ScheduleScreen({super.key});
@@ -19,6 +22,7 @@ class ScheduleScreen extends StatefulWidget{
 
 class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObserver {
   final GlobalKey<SearchComponentV2State> searchKey = GlobalKey<SearchComponentV2State>();
+  final GlobalKey<WheelPickerV2State<DateTime>> wheelPickerV2StateKey = GlobalKey<WheelPickerV2State<DateTime>>();
   late Future _data;
   final ValueNotifier<bool> isLoadingNotifier = ValueNotifier<bool>(false);
   @override
@@ -57,12 +61,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = 300.0;
     final scaler = TextScaler.linear(1);
     return PopScope(
       canPop: false, 
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
-        debugPrint(didPop.toString());
         if (didPop) return;
 
         if(SessionInfo.instance.userInfo.back()){
@@ -100,244 +103,269 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
       },
       child: Padding(
         padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: 
-                ListenableBuilder(
-                  listenable: Listenable.merge([
-                    SessionInfo.instance.scheduleService.currentModelNotifier,
-                    isLoadingNotifier,
-                  ]),
-                  builder:(context, child) {
-                    final value = SessionInfo.instance.scheduleService.currentModelNotifier.value;
-                    final isLoading = isLoadingNotifier.value;
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+            children: [
+              Positioned.fill(
+                child: 
+                  ListenableBuilder(
+                    listenable: Listenable.merge([
+                      SessionInfo.instance.scheduleService.currentModelNotifier,
+                      SessionInfo.instance.scheduleService.showTypeNotifier,
+                      isLoadingNotifier,
+                    ]),
+                    builder:(context, child) {
+                      final value = SessionInfo.instance.scheduleService.currentModelNotifier.value;
+                      final showType = SessionInfo.instance.scheduleService.showTypeNotifier.value;
+                      final isLoading = isLoadingNotifier.value;
 
-                    return Align(
-                      alignment: AlignmentGeometry.topCenter,
-                      child: (value == null || isLoading) ? getWidget()
-                        : ListenableBuilder(
-                        listenable: value.object,
-                        builder: (context, child) {
-                          if(value.object.groupedLessons.isEmpty){
-                            switch(value.receiptType){
-                              case(ReceiptType.api):
-                                return Center(
-                                  child: Text(
-                                    'Пар нет😭',
-                                    style: TextStyle(fontSize: 30),
-                                    textAlign: TextAlign.center,
-                                  )
-                                );
-                              case(ReceiptType.db):
-                                return Center(
-                                  child: Text(
-                                    'Локально пар нет.\nПопробуйте подключится к интернету',
-                                    style: TextStyle(fontSize: 30),
-                                    textAlign: TextAlign.center,
-                                  )
-                                );
-                              case(ReceiptType.mock):
-                                return Center(
-                                  child: Text(
-                                    'Пары не найдены.',
-                                    style: TextStyle(fontSize: 30),
-                                    textAlign: TextAlign.center,
-                                  )
-                                );
-                            }
-                          }
-                          final dates = value.object.groupedLessons.keys.toList();
-                          final lessons = value.object.groupedLessons.values.toList();
-                          double size = screenWidth;
-                          double currentSize;
-                          return SingleChildScrollView(
-                            padding: EdgeInsets.fromLTRB(0, value.receiptType == ReceiptType.db ? 130.0 : 80.0, 0, 84),
-                            child: Wrap(
-                            spacing: 24.0,
-                            runSpacing: 16.0,
-                            alignment: WrapAlignment.center,
-                            children: List.generate(dates.length, (index) {
-                              final currentDate = dates[index];
-                              final currentLessons = lessons[index];
-                              if(size < 442){
-                                size = screenWidth;
+                      return Align(
+                        alignment: AlignmentGeometry.topCenter,
+                        child: (value == null || isLoading) ? getWidget()
+                          : ListenableBuilder(
+                          listenable: value.object,
+                          builder: (context, child) {
+                            if(value.object.groupedLessons.isEmpty){
+                              switch(value.receiptType){
+                                case(ReceiptType.api):
+                                  return Center(
+                                    child: Text(
+                                      'Пар нет😭',
+                                      style: TextStyle(fontSize: 30),
+                                      textAlign: TextAlign.center,
+                                    )
+                                  );
+                                case(ReceiptType.db):
+                                  return Center(
+                                    child: Text(
+                                      'Локально пар нет.\nПопробуйте подключится к интернету',
+                                      style: TextStyle(fontSize: 30),
+                                      textAlign: TextAlign.center,
+                                    )
+                                  );
+                                case(ReceiptType.mock):
+                                  return Center(
+                                    child: Text(
+                                      'Пары не найдены.',
+                                      style: TextStyle(fontSize: 30),
+                                      textAlign: TextAlign.center,
+                                    )
+                                  );
                               }
-                              currentSize = getSize(610, 1232, screenWidth, space: 24);
-                              size -= (currentSize + 26);
-                              String rawDay = DateFormat('EEEE, dd.MM.yyyy').format(currentDate);
-                              return SizedBox(
-                                width: currentSize,
-                                child: Card(
-                                  color: const Color.fromARGB(255, 229, 241, 253),
-                                  elevation: 0,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    spacing: 8,
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsetsGeometry.fromLTRB(10, 6, 0, 0),
-                                        child: Text(
-                                          '${rawDay[0].toUpperCase()}${rawDay.substring(1)}',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.w400
-                                          ),
-                                        ),
+                            }
+                            final dates = value.object.groupedLessons.keys.toList();
+                            final lessons = value.object.groupedLessons.values.toList();
+                            double currentSize;
+                            return SingleChildScrollView(
+                              padding: EdgeInsets.fromLTRB(0, (90 + (value.receiptType == ReceiptType.db ? 50 : 0) + (showType == ShowType.singleDay ? 60 : 0)), 0, 94),
+                              child: Wrap(
+                                spacing: 24.0,
+                                runSpacing: 16.0,
+                                alignment: WrapAlignment.center,
+                                children: List.generate(dates.length, (index) {
+                                  final currentDate = dates[index];
+                                  final currentLessons = lessons[index];
+                                  currentSize = getSize(cardWidth * 2 + 10, constraints.maxWidth, space: 24.0);
+                                  String rawDay = DateFormat('EEEE, dd.MM.yyyy').format(currentDate);
+                                  return SizedBox(
+                                    width: currentSize,
+                                    child: Card(
+                                      color: const Color(0xFFE5F1FD),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20)
                                       ),
-                                      Divider(),
-                                      Wrap(
-                                        spacing: 15.0,
-                                        runSpacing: 10.0,
-                                        children: currentLessons.mapIndexed((index, lesson) {
-                                          return SizedBox(
-                                            width: getSize(300, 610, currentSize, screenSpace: 10, space: 15),
-                                            child: Card(
-                                              elevation: 0,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(15)
+                                      margin: EdgeInsets.zero,
+                                      elevation: 0,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        spacing: 8,
+                                        children: [
+                                          Padding(
+                                            padding: EdgeInsetsGeometry.fromLTRB(10, 6, 0, 0),
+                                            child: Text(
+                                              '${rawDay[0].toUpperCase()}${rawDay.substring(1)}',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.w400
                                               ),
-                                              clipBehavior: Clip.antiAlias, 
-                                              color: lesson.isCurrent() ? Color.fromARGB(255, 173, 215, 255) : Colors.transparent,
-                                              child: InkWell(
-                                                onTap: () {
+                                            ),
+                                          ),
+                                          Divider(),
+                                          Wrap(
+                                            spacing: 15.0,
+                                            runSpacing: 10.0,
+                                            children: currentLessons.mapIndexed((index, lesson) {
+                                              return SizedBox(
+                                                width: getSize(cardWidth, currentSize, screenSpace: 8.0, space: 15.0),
+                                                child: Card(
+                                                  elevation: 0,
+                                                  margin: EdgeInsets.zero,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(15)
+                                                  ),
+                                                  clipBehavior: Clip.antiAlias, 
+                                                  color: lesson.isCurrent() ? Color.fromARGB(255, 173, 215, 255) : Colors.transparent,
+                                                  child: InkWell(
+                                                    onTap: () {
 
-                                                },
-                                                splashColor: Color.fromARGB(123, 235, 245, 255),
-                                                highlightColor: Color.fromARGB(100, 235, 245, 255),  
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(10),
-                                                  child: Column(
-                                                    spacing: 10,
-                                                    children: [
-                                                      Row(
-                                                        spacing: 30,
-                                                        mainAxisAlignment: MainAxisAlignment.start,
-                                                        crossAxisAlignment: CrossAxisAlignment.center, 
+                                                    },
+                                                    splashColor: Color.fromARGB(123, 235, 245, 255),
+                                                    highlightColor: Color.fromARGB(100, 235, 245, 255),  
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.all(10),
+                                                      child: Column(
+                                                        spacing: 10,
                                                         children: [
-                                                          Expanded(
-                                                            child: Column(
-                                                              spacing: 5,
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisSize: MainAxisSize.min,
-                                                              children: [
-                                                                Row(
+                                                          Row(
+                                                            spacing: 30,
+                                                            mainAxisAlignment: MainAxisAlignment.start,
+                                                            crossAxisAlignment: CrossAxisAlignment.center, 
+                                                            children: [
+                                                              Expanded(
+                                                                child: Column(
+                                                                  spacing: 5,
                                                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                  children:[
-                                                                    Text(
-                                                                      "${lesson.call.time} пара",
-                                                                      textScaler: scaler,
-                                                                      textAlign: TextAlign.center,
-                                                                      style: const TextStyle(
-                                                                        fontSize: 16,
-                                                                        fontWeight: FontWeight.w900
-                                                                      ),
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+                                                                    Row(
+                                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children:[
+                                                                        Text(
+                                                                          "${lesson.call.time} пара",
+                                                                          textScaler: scaler,
+                                                                          textAlign: TextAlign.center,
+                                                                          style: const TextStyle(
+                                                                            fontSize: 16,
+                                                                            fontWeight: FontWeight.w900
+                                                                          ),
+                                                                        ),
+                                                                        Text(
+                                                                          "${lesson.call.timeStart} - ${lesson.call.timeEnd}",
+                                                                          textScaler: scaler,
+                                                                          style: const TextStyle(
+                                                                            fontSize: 16,
+                                                                            fontWeight: FontWeight.bold
+                                                                          ),
+                                                                        ),
+                                                                      ]
                                                                     ),
                                                                     Text(
-                                                                      "${lesson.call.timeStart} - ${lesson.call.timeEnd}",
+                                                                      lesson.couple.subject,
                                                                       textScaler: scaler,
                                                                       style: const TextStyle(
                                                                         fontSize: 16,
                                                                         fontWeight: FontWeight.bold
                                                                       ),
                                                                     ),
-                                                                  ]
+                                                                    Center(
+                                                                      child: value.object.getFooter(lesson),
+                                                                    ),
+                                                                  ],
                                                                 ),
-                                                                Text(
-                                                                  lesson.couple.subject,
-                                                                  textScaler: scaler,
-                                                                  style: const TextStyle(
-                                                                    fontSize: 16,
-                                                                    fontWeight: FontWeight.bold
-                                                                  ),
-                                                                ),
-                                                                Center(
-                                                                  child: value.object.getFooter(lesson),
-                                                                ),
-                                                              ],
-                                                            ),
+                                                              )
+                                                            ],
                                                           )
                                                         ],
                                                       )
-                                                    ],
-                                                  )
+                                                    )
+                                                  ),
                                                 )
-                                              ),
-                                            )
-                                          );
-                                        }).toList()
+                                              );
+                                            }).toList()
+                                          ),
+                                        ]
                                       ),
-                                    ]
-                                  ),
-                                ),
-                              );
-                            })
-                          )
-                        );
-                      },
-                    ),
-                  );
-                }
-              )
-            ),
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 10,
-              left: 0,
-              right: 0,
-              child: FutureBuilder(
-                future: _data,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
+                                    ),
+                                  );
+                                }
+                              )
+                            )
+                          );
+                        },
+                      ),
+                    );
                   }
-                  else if (snapshot.hasError) { 
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Ошибка загрузки: ${snapshot.error}'),
-                          backgroundColor: Colors.redAccent,
-                        ),
-                      );
-                    });
-                    
-                    return const SizedBox.shrink();
-                  }
-                  else if (snapshot.hasData && snapshot.data == true) {
-                    bool isSetted = false;
-                    return GlassContainer(
-                      child: Column(
-                        children: [
-                          SearchComponentV2(
-                            key: searchKey,
-                            objects: SessionInfo.instance.scheduleService.objects,
-                            onScheduleObjectSelected: (object) async {
-                              await SessionInfo.instance.scheduleService.uploadSchedule(object: object);
-                            },
+                )
+              ),
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 10,
+                left: 0,
+                right: 0,
+                child: FutureBuilder(
+                  future: _data,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    }
+                    else if (snapshot.hasError) { 
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Ошибка загрузки: ${snapshot.error}'),
+                            backgroundColor: Colors.redAccent,
                           ),
-                          ListenableBuilder(
-                            listenable: SessionInfo.instance.scheduleService.currentModelNotifier,
-                            builder: (context, child) {
-                              final value = SessionInfo.instance.scheduleService.currentModelNotifier.value;
-                              if(value == null) {
-                                return const SizedBox.shrink();
-                              }
-                              switch(value.receiptType){
-                                case ReceiptType.db:
-                                  String rawDay = DateFormat('dd.MM.yyyy HH:mm').format(value.object.scheduleObject.updatedAt);
-                                  if(!isSetted){
-                                    isSetted = true;
-                                  }
-                                  return Column(
-                                    children: [
+                        );
+                      });
+                      
+                      return const SizedBox.shrink();
+                    }
+                    else if (snapshot.hasData && snapshot.data == true) {
+                      return GlassContainer(
+                        child: Column(
+                          children: [
+                            SearchComponentV2(
+                              key: searchKey,
+                              objects: SessionInfo.instance.scheduleService.objects,
+                              onScheduleObjectSelected: (object) async {
+                                await SessionInfo.instance.scheduleService.uploadSchedule(object: object);
+                              },
+                            ),
+                            ListenableBuilder(
+                              listenable: Listenable.merge([
+                                SessionInfo.instance.scheduleService.currentModelNotifier,
+                                SessionInfo.instance.scheduleService.showTypeNotifier,
+                                SessionInfo.instance.scheduleService.selectedDateNotifier,
+                              ]),
+                              builder: (context, child) {
+                                final model = SessionInfo.instance.scheduleService.currentModelNotifier.value;
+                                final showType = SessionInfo.instance.scheduleService.showTypeNotifier.value;
+                                final date = SessionInfo.instance.scheduleService.selectedDateNotifier.value;
+                                if(model == null) {
+                                  return const SizedBox.shrink();
+                                }
+                                wheelPickerV2StateKey.currentState?.selectedValue = date ?? DateTime.now();
+                                return Column(
+                                  children: [
+                                    if(showType == ShowType.singleDay) ...[
                                       Divider(
                                         color: Color(0xFFFFFFFF),
                                       ),
                                       Padding(
-                                        padding: EdgeInsetsGeometry.fromLTRB(0, 0, 0, 10),
+                                        padding: EdgeInsetsGeometry.only(bottom: 10),
+                                        child: WheelPickerV2<DateTime>(
+                                          key: wheelPickerV2StateKey,
+                                          initialValue: date ?? DateTime.now(),
+                                          values: model.object.groupedRawLessons.keys.toList(),
+                                          fontSize: 20,
+                                          baseTextColor: Colors.white,
+                                          onChanged: (value) {
+                                            SessionInfo.instance.scheduleService.selectedDate = value;
+                                          },
+                                          labelBuilder: (value) => DateFormat('dd E').format(value)
+                                        ),
+                                      ),
+                                    ],
+                                    if(model.receiptType == ReceiptType.db) ...[
+                                      Divider(
+                                        color: Color(0xFFFFFFFF),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsetsGeometry.only(bottom: 10),
                                         child: Text(
-                                          'Расписание актуально с $rawDay',
+                                          'Расписание актуально с ${DateFormat('dd.MM.yyyy HH:mm').format(model.object.scheduleObject.updatedAt)}',
                                           style: TextStyle(
                                             fontSize: 17.6,
                                             fontWeight: FontWeight.w900,
@@ -345,33 +373,29 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                           ),
                                         ),
                                       )
-                                    ],
-                                  ); 
-                                default: 
-                                  if(isSetted){
-                                    isSetted = false;
-                                  }
-                                return const SizedBox.shrink();
+                                    ]
+                                  ],
+                                );
                               }
-                            }
-                          )
-                        ],
-                      )
-                    );
-                  }
-                  return const Center(
-                    child: Text(
-                      'Нет данных',
-                      style: TextStyle(
-                        fontSize: 25
+                            ),
+                          ],
+                        )
+                      );
+                    }
+                    return const Center(
+                      child: Text(
+                        'Нет данных',
+                        style: TextStyle(
+                          fontSize: 25
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        })
       )
     );
   }
@@ -414,42 +438,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
     }
   }
   
-  double getSize(double min, double max, double screenWidth, { double space = 16, double screenSpace = 10, bool show = false }){
-    final double available = screenWidth - screenSpace;
-    if (available <= min) {
-      return available > 0 ? available : screenWidth;
-    }
-    final double avg = (min + max) / 2;
-    int count = (available + space) ~/ (avg + space);
-    if(count < 1) count = 1;
-
-    double width = (available - space * (count - 1)) / count;
-    if(width > max){
-      final int correctionalCount = count + 1;
-      final double correctionalWidth = (available - space * (correctionalCount - 1)) / correctionalCount;
-      if(correctionalWidth >= min) return correctionalWidth;
-      return max;
-    }
-
-    return width;
-  }
-  
-  double getSizeV1(double min, double max, double screenWidth, { double space = 16, double screenSpace = 10, bool show = false }){
-    if(min > screenWidth){
-      return screenWidth;
-    }
-    double avg = (min + max) / 2;
-    double spaceToFill = (screenWidth - screenSpace);
-    if(spaceToFill <= avg){
-      avg = min;
-    }
-    int countBlocks = (spaceToFill ~/ avg);
-    spaceToFill -= space * (countBlocks - 1);
-    countBlocks = (spaceToFill ~/ avg);
-    double k = (spaceToFill % avg) / countBlocks;
-    return avg + k;
-  }
-
   @override
   void dispose() {
     isLoadingNotifier.dispose();

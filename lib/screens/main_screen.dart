@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:tktts_schedule/nav_item.dart';
 import 'package:tktts_schedule/screens/additional/menu_component.dart';
+import 'package:tktts_schedule/screens/additional/settings/updates_screen.dart';
 import 'package:tktts_schedule/screens/schedule_screen.dart';
 import 'package:tktts_schedule/screens/settings_screen.dart';
+import 'package:tktts_schedule/ui_models/settings_group.dart';
 
 class MainScreen extends StatefulWidget{
   const MainScreen({super.key});
@@ -16,7 +18,17 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   final List<Widget> _screens = [
     const ScheduleScreen(),
     const Center(child:  Text('Экран профиля'),),
-    const Center(child: SettingsScreen()),
+    Center(child: SettingsScreen(
+      groups: [
+        SettingsGroup(
+          title: "Обновление",
+          icon: Icons.download_rounded,
+          widgets: [
+            UpdatesScreen()
+          ]
+        ),
+      ]
+    )),
   ];
   final List<NavItem> _navItems = const [
     NavItem(
