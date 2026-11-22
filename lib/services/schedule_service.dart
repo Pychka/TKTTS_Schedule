@@ -31,12 +31,18 @@ class ScheduleService {
   ScheduleObjectMetadata<BaseModel>? _currentModel;
   late List<ScheduleObject> objects;
   ValueNotifier<ScheduleObjectMetadata<BaseModel>?> currentModelNotifier = ValueNotifier(null);
+  late ValueNotifier<ShowType> showTypeNotifier;
+  late ValueNotifier<DateTime?> selectedDateNotifier;
   final GlobalKey<SearchComponentV2State> _searchKey = GlobalKey<SearchComponentV2State>();
+  DateTime? _selectedDate;
   ShowType _showType = ShowType.all;
   DataBase dataBase = DataBase();
   Future<void> Function(ScheduleObject? object, Future<void> Function()? action)? onChangeModel;
 
-  ScheduleService(this.onChangeModel);
+  ScheduleService(this.onChangeModel){
+    showTypeNotifier = ValueNotifier(_showType);
+    selectedDateNotifier = ValueNotifier(SessionInfo.instance.userInfo.roadMap?.selectedDate);
+  }
 
   ScheduleObjectMetadata<BaseModel>? get currentModel => _currentModel;
   set currentModel(ScheduleObjectMetadata<BaseModel>? value){
@@ -45,9 +51,20 @@ class ScheduleService {
     changeShow(type: _showType);
   }
 
+  set selectedDate(DateTime? value){
+    _selectedDate = value;
+    selectedDateNotifier.value = value;
+    SessionInfo.instance.userInfo.roadMap?.selectedDate = _selectedDate;
+    StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
+    if(showType == ShowType.singleDay){
+      changeShow(type: showType);
+    }
+  }
+
   ShowType get showType => _showType;
   set showType(ShowType showType){
     _showType = showType;
+    showTypeNotifier.value = showType;
     SessionInfo.instance.userInfo.showType = showType;
     StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
     changeShow(type: _showType);
@@ -124,6 +141,9 @@ class ScheduleService {
       }
       return;
     }
+
+    selectedDate = roadMap.selectedDate;
+
     switch(roadMap.type){
       case ModelType.auditory:
         await changeModelToAuditory(id: roadMap.id, changeSelection: false);
@@ -137,7 +157,7 @@ class ScheduleService {
     }
   }
 
-  void changeShow({required ShowType type, DateTime? date}){
+  void changeShow({required ShowType type}){
     if(_currentModel == null){
       return;
     }
@@ -153,8 +173,9 @@ class ScheduleService {
         model.setLessonsToShow(model.lessons.where((element) => dateGreaterOrEquals(element.couple.date, DateTime.now())).toList());
       break;
       case ShowType.singleDay:
-        if(date == null) return;
-        model.setLessonsToShow(model.lessons.where((element) => dateGreaterOrEquals(element.couple.date, date)).toList());
+        _selectedDate ??= model.groupedRawLessons.keys.first;
+        if(_selectedDate == null) return;
+        model.setLessonsToShow(model.lessons.where((element) => dateEquals(element.couple.date, _selectedDate!)).toList());
       break;
     }
   }
