@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:tktts_schedule/nav_item.dart';
 import 'package:tktts_schedule/screens/additional/menu_component.dart';
 import 'package:tktts_schedule/screens/additional/settings/updates_screen.dart';
 import 'package:tktts_schedule/screens/schedule_screen.dart';
 import 'package:tktts_schedule/screens/settings_screen.dart';
+import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/ui_models/settings_group.dart';
 
 class MainScreen extends StatefulWidget{
@@ -47,25 +50,64 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Color(0xFFf4faff),
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: Color(0xFFf4faff), 
-          extendBody: true,
-          body: IndexedStack(
-            index: _currentIndex,
-            children: _screens,
+    return PopScope(
+      canPop: false, 
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+
+        if(_currentIndex == 0 && SessionInfo.instance.userInfo.back()){
+          await SessionInfo.instance.scheduleService.changeModel(SessionInfo.instance.userInfo.roadMap);
+        }
+        else{
+          final bool shouldLeave = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Вы хотите выйти?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Остаться'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (Platform.isAndroid) {
+                      SystemNavigator.pop();
+                    } else if (!Platform.isIOS) {
+                      exit(0);
+                    }
+                  },
+                  child: const Text('Выйти'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+
+          if (shouldLeave && context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Container(
+        color: Color(0xFFf4faff),
+        child: SafeArea(
+          child: Scaffold(
+            backgroundColor: Color(0xFFf4faff), 
+            extendBody: true,
+            body: IndexedStack(
+              index: _currentIndex,
+              children: _screens,
+            ),
+            bottomNavigationBar:  MenuComponent(
+              navItems: _navItems,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+            ),
           ),
-          bottomNavigationBar:  MenuComponent(
-            navItems: _navItems,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-          ),
-        ),
+        )
       )
     );
   }

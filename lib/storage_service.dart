@@ -10,12 +10,15 @@ class StorageService {
 
   static final StorageService instance = StorageService._internal();
 
+  bool _isInitialized = false;
+
   static const String _boxName = 'tktts_schedule_records';
   static const String _userKey = 'user_info_data';
 
   late Box<UserInfo> _userBox;
 
   Future<void> init() async{
+    if(_isInitialized) return;
     await Hive.initFlutter();
     
     Hive.registerAdapter(UserInfoAdapter());
@@ -24,6 +27,7 @@ class StorageService {
     Hive.registerAdapter(RoadMapAdapter());
     Hive.registerAdapter(TrackedObjectAdapter());
     _userBox = await Hive.openBox<UserInfo>(_boxName);
+    _isInitialized = true;
   }
 
   UserInfo? getUserInfo() {
