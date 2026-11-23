@@ -1,6 +1,6 @@
-double getSize(double min, double screenWidth, { double space = 0.0, double screenSpace = 0.0, bool show = false }){
+double getSize(double min, double screenWidth, { double? max = null, double space = 0.0, double screenSpace = 0.0, bool show = false }){
   final double available = screenWidth - screenSpace;
-  final double max = min * 2 - space;
+  max ??= min * 2 - space;
   if (available <= min) {
     return available > 0 ? available : screenWidth;
   }

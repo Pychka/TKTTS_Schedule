@@ -38,6 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
           padding: EdgeInsets.fromLTRB(0, 10, 0, 84),
           child: Wrap(
             spacing: 10,
+            runSpacing: 10,
             children: 
               List.generate(widget.groups.length, (index) {
                 final group = widget.groups[index];

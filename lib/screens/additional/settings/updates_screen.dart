@@ -34,10 +34,10 @@ class _UpdatesScreenState extends State<UpdatesScreen> with WidgetsBindingObserv
             child: WheelPickerV2(
               initialValue: SessionInfo.instance.userInfo.syncIntervalMinutes,
               values: List.generate(22, (i) => 15 + i * 5),
-              onChanged: (val) {
+              onChanged: (val) async {
                 currentValue = val;
                 SessionInfo.instance.userInfo.syncIntervalMinutes = val;
-                StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
+                await StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
               },
               labelBuilder: (val) {
                 int hours = val ~/ 60;
