@@ -62,7 +62,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
     final cardWidth = 300.0;
     final scaler = TextScaler.linear(1);
     return Padding(
-      padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      padding: EdgeInsets.symmetric(horizontal: 10),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return Stack(
@@ -121,12 +121,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                             padding: EdgeInsets.fromLTRB(0, (90 + (value.receiptType == ReceiptType.db ? 50 : 0) + (showType == ShowType.singleDay ? 60 : 0)), 0, 94),
                             child: Wrap(
                               spacing: 24.0,
-                              runSpacing: 16.0,
+                              runSpacing: 24.0,
                               alignment: WrapAlignment.center,
                               children: List.generate(dates.length, (index) {
                                 final currentDate = dates[index];
                                 final currentLessons = lessons[index];
-                                currentSize = getSize(cardWidth * 2 + 10, constraints.maxWidth, space: 24.0);
+                                currentSize = showType == ShowType.singleDay || showType == ShowType.today ? constraints.maxWidth : getSize(cardWidth * 2 + 24, max: cardWidth * 3 + 48, constraints.maxWidth, space: 24.0);
                                 String rawDay = DateFormat('EEEE, dd.MM.yyyy').format(currentDate);
                                 return SizedBox(
                                   width: currentSize,
@@ -157,6 +157,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                           spacing: 15.0,
                                           runSpacing: 10.0,
                                           children: currentLessons.mapIndexed((index, lesson) {
+                                            final isCurrent = lesson.isCurrent();
                                             return SizedBox(
                                               width: getSize(cardWidth, currentSize, screenSpace: 8.0, space: 15.0),
                                               child: Card(
@@ -166,13 +167,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                                   borderRadius: BorderRadius.circular(15)
                                                 ),
                                                 clipBehavior: Clip.antiAlias, 
-                                                color: lesson.isCurrent() ? Color.fromARGB(255, 173, 215, 255) : Colors.transparent,
+                                                color: isCurrent ? Color.fromARGB(255, 156, 207, 255) : Colors.transparent,
                                                 child: InkWell(
                                                   onTap: () {
 
                                                   },
-                                                  splashColor: Color.fromARGB(123, 235, 245, 255),
-                                                  highlightColor: Color.fromARGB(100, 235, 245, 255),  
+                                                  splashColor: Color.fromARGB(122, 162, 209, 255),
+                                                  highlightColor: Color.fromARGB(158, 119, 187, 255),  
                                                   child: Padding(
                                                     padding: const EdgeInsets.all(10),
                                                     child: Column(
@@ -197,17 +198,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                                                         "${lesson.call.time} пара",
                                                                         textScaler: scaler,
                                                                         textAlign: TextAlign.center,
-                                                                        style: const TextStyle(
+                                                                        style: TextStyle(
                                                                           fontSize: 16,
-                                                                          fontWeight: FontWeight.w900
+                                                                          fontWeight: FontWeight.w900,
+                                                                          color: isCurrent ? Colors.white : Colors.black
                                                                         ),
                                                                       ),
                                                                       Text(
                                                                         "${lesson.call.timeStart} - ${lesson.call.timeEnd}",
                                                                         textScaler: scaler,
-                                                                        style: const TextStyle(
+                                                                        style: TextStyle(
                                                                           fontSize: 16,
-                                                                          fontWeight: FontWeight.bold
+                                                                          fontWeight: FontWeight.bold,
+                                                                          color: isCurrent ? Colors.white : Colors.black
                                                                         ),
                                                                       ),
                                                                     ]
@@ -215,13 +218,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                                                   Text(
                                                                     lesson.couple.subject,
                                                                     textScaler: scaler,
-                                                                    style: const TextStyle(
+                                                                    style: TextStyle(
                                                                       fontSize: 16,
-                                                                      fontWeight: FontWeight.bold
+                                                                      fontWeight: FontWeight.bold,
+                                                                          color: isCurrent ? Colors.white : Colors.black
                                                                     ),
                                                                   ),
                                                                   Center(
-                                                                    child: value.object.getFooter(lesson),
+                                                                    child: value.object.getFooter(lesson, isCurrent),
                                                                   ),
                                                                 ],
                                                               ),
@@ -296,7 +300,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                               if(model == null) {
                                 return const SizedBox.shrink();
                               }
-                              wheelPickerV2StateKey.currentState?.selectedValue = date ?? DateTime.now();
+                              wheelPickerV2StateKey.currentState?.selectedValue = date ?? model.object.groupedRawLessons.keys.first;
                               return Column(
                                 children: [
                                   if(showType == ShowType.singleDay) ...[
