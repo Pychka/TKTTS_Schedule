@@ -11,7 +11,7 @@ import 'package:tktts_schedule/session_info.dart';
 
     try {
       await StorageService.instance.init();
-      final userInfo = StorageService.instance.getUserInfo();
+      final userInfo = await StorageService.instance.getUserInfo();
 
       if (userInfo == null ||
           (userInfo.favoriteAuditories.isEmpty &&
@@ -28,7 +28,7 @@ import 'package:tktts_schedule/session_info.dart';
       await scheduleService.updateFavorites(sessionInfo: SessionInfo.instance);
 
       userInfo.lastSync = DateTime.now();
-      StorageService.instance.saveUserInfo(userInfo);
+      await StorageService.instance.saveUserInfo(userInfo);
       return true;
     } catch (e, stack) {
       debugPrint('Ошибка фоновой синхронизации: $e\n$stack');

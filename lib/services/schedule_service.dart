@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -55,18 +57,18 @@ class ScheduleService {
     _selectedDate = value;
     selectedDateNotifier.value = value;
     SessionInfo.instance.userInfo.roadMap?.selectedDate = _selectedDate;
-    StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
+    unawaited(StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo));
     if(showType == ShowType.singleDay){
       changeShow(type: showType);
     }
   }
 
   ShowType get showType => _showType;
-  set showType(ShowType showType){
+  set showType(ShowType showType) {
     _showType = showType;
     showTypeNotifier.value = showType;
     SessionInfo.instance.userInfo.showType = showType;
-    StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
+    unawaited(StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo));
     changeShow(type: _showType);
   }
 
