@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:tktts_schedule/models/schedule_object.dart';
 import 'package:tktts_schedule/screens/additional/glass_container.dart';
@@ -6,11 +8,15 @@ import 'package:tktts_schedule/ui_models/show_type.dart';
 
 class SearchComponentV2 extends StatefulWidget {
   final List<ScheduleObject> objects;
-  final ValueChanged<ScheduleObject?> onScheduleObjectSelected; 
+  final ValueChanged<ScheduleObject?> onScheduleObjectSelected;
+  final bool isExpanded;
+  final ValueChanged<bool> onExpandedChanged;
 
   const SearchComponentV2({
     super.key, 
     required this.objects,
+    required this.isExpanded,
+    required this.onExpandedChanged,
     required this.onScheduleObjectSelected
   });
 
@@ -19,10 +25,24 @@ class SearchComponentV2 extends StatefulWidget {
 }
 
 class SearchComponentV2State extends State<SearchComponentV2> {
+  List<ScheduleObject> objectsToShow = [];
+  final Map<ScheduleObject, List<String>> _tokensCache = {};
   final FocusNode _focusNode = FocusNode();
+  String query = "";
   final SearchController _searchController = SearchController();
   ScheduleObject? selectedObject;
-  bool _isExpanded = false;
+
+  List<String> _getCachedTokens(ScheduleObject obj) {
+    return _tokensCache.putIfAbsent(obj, () => _getClean(obj.name));
+  }
+
+ @override
+  void didUpdateWidget(covariant SearchComponentV2 oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.objects != widget.objects) {
+      _tokensCache.clear();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,13 +58,6 @@ class SearchComponentV2State extends State<SearchComponentV2> {
       ),
       padding: const EdgeInsets.all(6),
     );
-
-    final query = _searchController.text.toLowerCase();
-    
-    final groupedData = widget.objects
-        .where((group) => group.name.toLowerCase().contains(query))
-        .toList()
-      ..sort(SessionInfo.instance.scheduleService.compareObjects);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -68,17 +81,19 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                   ),
                   onTap: () {
                     setState(() {
-                      _isExpanded = true;
+                      widget.onExpandedChanged(true);
                     });
                   },
-                  onChanged: (_) {
+                  onChanged: (value) {
                     setState(() {
-                      _isExpanded = true;
+                      query = value;
+                      widget.onExpandedChanged(true);
                     });
+                    search();
                   },
                 ),
               ),
-              if (_isExpanded)
+              if (widget.isExpanded)
                 ...[
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.white),
@@ -86,18 +101,21 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                       setState(() {
                         if (_searchController.text.isNotEmpty) {
                           _searchController.clear();
+                          query = _searchController.text;
                         } else {
-                          _isExpanded = false;
+                          widget.onExpandedChanged(false);
                           _focusNode.unfocus();
                         }
                       });
+                      search();
                     },
                   ),
                   IconButton(
                     icon: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
                     onPressed: () {
                       setState(() {
-                        _isExpanded = false;
+                        widget.onExpandedChanged(false);
+                        _focusNode.unfocus();
                       });
                     },
                   ),
@@ -159,14 +177,14 @@ class SearchComponentV2State extends State<SearchComponentV2> {
         AnimatedSize(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeInOut,
-          child: _isExpanded
+          child: widget.isExpanded
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Divider(height: 1, color: Colors.white54),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 260),
-                    child: groupedData.isEmpty
+                    child: objectsToShow.isEmpty
                         ? const Padding(
                             padding: EdgeInsets.all(16.0),
                             child: Text(
@@ -177,9 +195,9 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                         : ListView.builder(
                             shrinkWrap: true,
                             padding: const EdgeInsets.symmetric(vertical: 4),
-                            itemCount: groupedData.length,
+                            itemCount: objectsToShow.length,
                             itemBuilder: (context, index) {
-                              final group = groupedData[index];
+                              final group = objectsToShow[index];
                               return StatefulBuilder(
                                 builder: (context, setStateLocal) {
                                   return ListTile(
@@ -205,7 +223,7 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                                       setState(() {
                                         selectedObject = group;
                                         _searchController.text = group.name;
-                                        _isExpanded = false;
+                                        widget.onExpandedChanged(false);
                                       });
                                       _focusNode.unfocus();
                                       widget.onScheduleObjectSelected(group);
@@ -249,6 +267,37 @@ class SearchComponentV2State extends State<SearchComponentV2> {
     );
   }
 
+  void search(){
+    final List<({ScheduleObject obj, double score})> scoredData = [];
+
+    if (query.isEmpty) {
+      setState(() => objectsToShow = widget.objects);
+      return;
+    } else {
+      final queryTokens = _getClean(query);
+      for (final so in widget.objects) {
+        final score = isEqualsString(
+          so.name,
+          query,
+          first: _getCachedTokens(so),
+          second: queryTokens,
+        );
+        if (score >= 0.7) {
+          scoredData.add((obj: so, score: score));
+        }
+      }
+    }
+
+    scoredData.sort((a, b) {
+      final scoreDiff = b.score.compareTo(a.score);
+      if (scoreDiff != 0) return scoreDiff;
+      
+      return SessionInfo.instance.scheduleService.compareObjects(a.obj, b.obj);
+    });
+
+    setState(() => objectsToShow = scoredData.map((e) => e.obj).toList());
+  }
+
   void changeSelection(ScheduleObject? obj){
     setState(() {
       selectedObject = obj; 
@@ -258,7 +307,194 @@ class SearchComponentV2State extends State<SearchComponentV2> {
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _searchController.dispose();
     super.dispose();
   }
 }
+
+List<String> splitAndClean(
+  String str,
+  String toSplit,
+  List<String>? toRemove, {
+  List<String>? toClean,
+  List<String>? toClear,
+  int minSize = 3,
+}) {
+  final List<String> result = [];
+  str = str.toLowerCase();
+  int start = 0;
+  String second;
+  String? third;
+  String ch;
+
+  for (int i = 0; i < str.length; i++) {
+    ch = str[i];
+    if (ch == toSplit) {
+      if (i + 1 < str.length) {
+        second = str[i + 1];
+        third = i + 2 < str.length ? str[i + 2] : null;
+
+        if ((second == toSplit || third == toSplit) && minSize > i - start) {
+          str = str.replaceRange(i, i + 1, '');
+          i--;
+          continue;
+        }
+
+        if (third != toSplit && toRemove != null && toRemove.contains(second)) {
+          str = str.replaceRange(i + 1, i + 2, ' ');
+          i--;
+          continue;
+        }
+
+        if (minSize > i - start) {
+          str = str.replaceRange(i, i + 1, '');
+          i--;
+          continue;
+        }
+      }
+
+      if (start != i) {
+        result.add(str.substring(start, i));
+        str = str.replaceRange(i, i + 1, '');
+        i--;
+      }
+      start = i + 1;
+    }
+
+    if (start == i && toClean?.contains(ch) == true) {
+      start = i + 1;
+    }
+
+    if (toRemove?.contains(ch) == true) {
+      str = str.replaceRange(i, i + 1, ' ');
+      i--;
+      continue;
+    }
+  }
+
+  if (start < str.length) {
+    result.add(str.substring(start));
+  }
+
+  if (toClear != null) {
+    for (final String f in List<String>.from(result)) {
+      final String q = f.split('').where((c) => !toClear.contains(c)).join();
+
+      if (f != q && !result.contains(q)) {
+        result.add(q);
+      }
+
+      if (f != q) {
+        final subTokens = splitAndClean(
+          f,
+          toSplit,
+          toClear,
+          toClean: toClean,
+          toClear: null,
+          minSize: minSize,
+        );
+        for (final sub in subTokens) {
+          if (!result.contains(sub)) {
+            result.add(sub);
+          }
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+double isEqualsString(
+  String a,
+  String b, {
+  required List<String> first,
+  required List<String> second,
+  double coefficient = 0.7,
+}) {
+  b = b.toLowerCase();
+  if (a.startsWith(b)) return 1.1;
+
+  if (second.isEmpty) return 1.1;
+
+  if (first.isEmpty) return 0.0;
+
+  List<double> ks = [];
+  final List<bool> used = List<bool>.filled(first.length, false);
+
+  for (final queryWord in second) {
+    int bestIdx = -1;
+    double bestK = 0.0;
+
+    for (int i = 0; i < first.length; i++) {
+      if (used[i]) continue;
+      final k = isEquals(first[i], queryWord);
+      if (k > bestK) {
+        bestK = k;
+        bestIdx = i;
+      }
+    }
+
+    if (bestIdx == -1 || bestK < coefficient) return 0.0;
+
+    used[bestIdx] = true;
+    ks.add(bestK);
+  }
+
+  return ((ks.sum / second.length) + (pow(ks.fold(1, (acc, item) => acc * item), 1 / second.length))) / coefficient;
+}
+
+double isEquals(String target, String query, {double min = 0.7}) {
+  if (query.isEmpty || target.isEmpty) return 0.0;
+  if (target.startsWith(query)) return 1.1;
+
+  final int window = max(2, (target.length ~/ 2) - 1);
+  final double k = (1 / query.length);
+  if (query.length > target.length + window) return 0.0;
+
+  double maxPossibleWeight = 0.0;
+  double earnedWeight = 0.0;
+  final List<bool> used = List<bool>.filled(target.length, false);
+
+  for (int i = 0; i < query.length; i++) {
+    final String ch = query[i];
+    final double charImportance = (i == 0) ? 1.5 : 1.0;
+    maxPossibleWeight += charImportance;
+
+    if (i < target.length && !used[i] && ch == target[i]) {
+      earnedWeight += charImportance;
+      used[i] = true;
+      continue;
+    }
+
+    final int code = ch.codeUnitAt(0);
+    if (code >= 48 && code <= 57){
+      earnedWeight -= 1;
+      continue;
+    }
+    bool isFounded = false;
+    for (int c = 1; c <= window; c++) {
+      final double distancePenalty = 1.0 - (c / (window + 1));
+
+      if (i + c < target.length && !used[i + c] && target[i + c] == ch) {
+        earnedWeight += charImportance * distancePenalty;
+        used[i + c] = true;
+        isFounded = true;
+        break;
+      }
+
+      if (i - c >= 0 && i - c < target.length && !used[i - c] && target[i - c] == ch) {
+        earnedWeight += charImportance * distancePenalty;
+        used[i - c] = true;
+        isFounded = true;
+        break;
+      }
+    }
+    if(!isFounded) earnedWeight -= k * 2;
+  }
+
+  return earnedWeight / maxPossibleWeight;
+}
+
+List<String> _getClean(String str) => splitAndClean(str.toLowerCase(), ' ', [',', '.', '(', ')'], toClean: ['/'], toClear: ['-']);

@@ -3,6 +3,7 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
+import 'package:tktts_schedule/app_settings.dart';
 import 'package:tktts_schedule/ui_models/model_type.dart';
 import 'package:tktts_schedule/ui_models/road_map.dart';
 import 'package:tktts_schedule/ui_models/show_type.dart';
@@ -11,6 +12,7 @@ import 'package:tktts_schedule/user_info.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
+    registerAdapter(AppSettingsAdapter());
     registerAdapter(ModelTypeAdapter());
     registerAdapter(RoadMapAdapter());
     registerAdapter(ShowTypeAdapter());
@@ -21,6 +23,7 @@ extension HiveRegistrar on HiveInterface {
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
+    registerAdapter(AppSettingsAdapter());
     registerAdapter(ModelTypeAdapter());
     registerAdapter(RoadMapAdapter());
     registerAdapter(ShowTypeAdapter());

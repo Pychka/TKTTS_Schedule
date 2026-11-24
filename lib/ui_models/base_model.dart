@@ -33,7 +33,7 @@ class BaseModel<T extends ScheduleObject> extends ChangeNotifier {
 
   Map<DateTime, List<LessonsModel>> get groupedRawLessons => groupBy(lessons, (lesson) => lesson.couple.date );
 
-  Widget getFooter(LessonsModel lesson){
+  Widget getFooter(LessonsModel lesson, bool isCurrent){
     return Text('Заглушка');
   }
 

@@ -26,7 +26,7 @@ class AuditoryModel extends BaseModel<Auditory> {
     for(final rawLesson in rawLessons){
       final lessonJson = Map<String, dynamic>.from(rawLesson as Map);
       if (!lessonJson.containsKey('id') || lessonJson['id'] == null) {
-        lessonJson['id'] = SessionInfo.instance.userInfo.coupleId++;; 
+        lessonJson['id'] = SessionInfo.instance.userInfo.coupleId++;
       }
       if (lessonJson['date'] is String) {
         final String rawDate = lessonJson['date'] as String;
@@ -87,90 +87,94 @@ class AuditoryModel extends BaseModel<Auditory> {
   }
 
   @override
-  Widget getFooter(LessonsModel lesson) {
+  Widget getFooter(LessonsModel lesson, bool isCurrent) {
     final buttonStyle = TextButton.styleFrom(
       alignment: Alignment.centerLeft, 
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );
     final scaler = TextScaler.linear(1);
-    return Wrap(
-      spacing: 6.0,
-      runSpacing: 4.0,
+    final hasSubgroups = lesson.subgroups.length > 1 || lesson.couple.subgroup > 0;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
+        if(hasSubgroups)
+          Text(
+            "Подгруппы:",
+            textScaler: scaler,
+            style: TextStyle(
+              fontSize: 16,
+              color: isCurrent ? Colors.white70 : Colors.grey
+            ),
+          ),
         for(final subgroup in lesson.subgroups)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start, 
-            mainAxisSize: MainAxisSize.min,
-            spacing: 5,
+          Row(
             children: [
-              if(lesson.subgroups.length > 1 || lesson.couple.subgroup > 0)
+              if(hasSubgroups)
                 Text(
-                  "Подгруппа ${subgroup.number}",
+                  "${subgroup.number}:",
                   textScaler: scaler,
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.grey
+                    color: isCurrent ? Colors.white70 : Colors.black87
                   ),
                 ),
-              Wrap(
+              Expanded(
+                child: TextButton(onPressed: () {
+                  SessionInfo.instance.scheduleService.changeModelToTeacher(id: subgroup.teacher.id);
+                },
+                style: buttonStyle,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 5,
+                  children: [
+                    Icon(
+                      Icons.person_rounded,
+                      color: isCurrent ? Colors.white : Colors.black87
+                    ),
+                    Text(
+                      subgroup.teacher.name,
+                      textAlign: TextAlign.center,
+                      textScaler: scaler,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
+                        color: isCurrent ? Colors.white : Colors.black87
+                      ),
+                    ),
+                  ],
+                )
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                SessionInfo.instance.scheduleService.changeModelToGroup(id: subgroup.group.id);
+              },
+              style: buttonStyle,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 spacing: 5,
-                runSpacing: 5,
-                alignment: WrapAlignment.start,
                 children: [
-                  TextButton(onPressed: () {
-                      SessionInfo.instance.scheduleService.changeModelToTeacher(id: subgroup.teacher.id);
-                    },
-                    style: buttonStyle,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 5,
-                      children: [
-                        const Icon(
-                          Icons.person_rounded,
-                          color: Colors.black87,
-                        ),
-                        Text(
-                          subgroup.teacher.name,
-                          textAlign: TextAlign.center,
-                          textScaler: scaler,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    )
+                  Icon(
+                    Icons.group_rounded,
+                    color: isCurrent ? Colors.white : Colors.black87
                   ),
-                  TextButton(onPressed: () {
-                      SessionInfo.instance.scheduleService.changeModelToGroup(id: subgroup.group.id);
-                    },
-                    style: buttonStyle,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 5,
-                      children: [
-                        const Icon(
-                          Icons.group_rounded,
-                          color: Colors.black87,
-                        ),
-                        Text(
-                          subgroup.group.name,
-                          textAlign: TextAlign.center,
-                          textScaler: scaler,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    )
+                  Text(
+                    subgroup.group.name,
+                    textAlign: TextAlign.center,
+                    textScaler: scaler,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.normal,
+                      color: isCurrent ? Colors.white : Colors.black87
+                    ),
                   ),
                 ],
               )
-            ],
-          )
+            ),
+          ],
+        )
       ],
     );
   }

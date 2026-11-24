@@ -34,11 +34,11 @@ class UserInfo {
   @HiveField(10, defaultValue: 60)
   int syncIntervalMinutes = 60;
 
-  bool back(){
+  Future<bool> back() async {
     if(roadMap == null) return false;
 
     roadMap = roadMap!.previous;
-    StorageService.instance.saveUserInfo(this);
+    await StorageService.instance.saveUserInfo(this);
     return true;
   }
 
@@ -49,7 +49,7 @@ class UserInfo {
     }
   }
 
-  void changeSelection(ScheduleObject obj, { DateTime? selectedDate }){
+  Future changeSelection(ScheduleObject obj, { DateTime? selectedDate }) async {
     if(!saveRoadMap){
       return;
     }
@@ -66,10 +66,10 @@ class UserInfo {
       showType: showType,
       selectedDate: selectedDate
     );
-    StorageService.instance.saveUserInfo(this);
+    await StorageService.instance.saveUserInfo(this);
   }
 
-  void startTrack(ScheduleObject? obj){
+  Future startTrack(ScheduleObject? obj) async {
     if(obj == null){
       trackedObject = null;
     }
@@ -84,15 +84,15 @@ class UserInfo {
         }
       );
     }
-    StorageService.instance.saveUserInfo(this);
+    await StorageService.instance.saveUserInfo(this);
   }
 
-  void addFavorite(ScheduleObject obj){
+  Future addFavorite(ScheduleObject obj) async {
     final set = _getSet(obj);
     if(!set.add(obj.id)){
       set.remove(obj.id);
     }
-    StorageService.instance.saveUserInfo(this);
+    await StorageService.instance.saveUserInfo(this);
   }
 
   bool isFavorite(ScheduleObject obj) => _getSet(obj).contains(obj.id);

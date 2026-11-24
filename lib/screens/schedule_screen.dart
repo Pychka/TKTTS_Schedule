@@ -21,6 +21,7 @@ class ScheduleScreen extends StatefulWidget{
 class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObserver {
   final GlobalKey<SearchComponentV2State> searchKey = GlobalKey<SearchComponentV2State>();
   final GlobalKey<WheelPickerV2State<DateTime>> wheelPickerV2StateKey = GlobalKey<WheelPickerV2State<DateTime>>();
+  bool _isSearchExpanded = false;
   late Future _data;
   final ValueNotifier<bool> isLoadingNotifier = ValueNotifier<bool>(false);
   @override
@@ -224,9 +225,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                                                                           color: isCurrent ? Colors.white : Colors.black
                                                                     ),
                                                                   ),
-                                                                  Center(
-                                                                    child: value.object.getFooter(lesson, isCurrent),
-                                                                  ),
+                                                                  value.object.getFooter(lesson, isCurrent),
                                                                 ],
                                                               ),
                                                             )
@@ -282,65 +281,77 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
                         children: [
                           SearchComponentV2(
                             key: searchKey,
+                            isExpanded: _isSearchExpanded,
+                            onExpandedChanged: (expanded) {
+                              setState(() {
+                                _isSearchExpanded = expanded;
+                              });
+                            },
                             objects: SessionInfo.instance.scheduleService.objects,
                             onScheduleObjectSelected: (object) async {
                               await SessionInfo.instance.scheduleService.uploadSchedule(object: object);
                             },
                           ),
-                          ListenableBuilder(
-                            listenable: Listenable.merge([
-                              SessionInfo.instance.scheduleService.currentModelNotifier,
-                              SessionInfo.instance.scheduleService.showTypeNotifier,
-                              SessionInfo.instance.scheduleService.selectedDateNotifier,
-                            ]),
-                            builder: (context, child) {
-                              final model = SessionInfo.instance.scheduleService.currentModelNotifier.value;
-                              final showType = SessionInfo.instance.scheduleService.showTypeNotifier.value;
-                              final date = SessionInfo.instance.scheduleService.selectedDateNotifier.value;
-                              if(model == null) {
-                                return const SizedBox.shrink();
-                              }
-                              wheelPickerV2StateKey.currentState?.selectedValue = date ?? model.object.groupedRawLessons.keys.first;
-                              return Column(
-                                children: [
-                                  if(showType == ShowType.singleDay) ...[
-                                    Divider(
-                                      color: Color(0xFFFFFFFF),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsetsGeometry.only(bottom: 10),
-                                      child: WheelPickerV2<DateTime>(
-                                        key: wheelPickerV2StateKey,
-                                        initialValue: date ?? DateTime.now(),
-                                        values: model.object.groupedRawLessons.keys.toList(),
-                                        fontSize: 20,
-                                        baseTextColor: Colors.white,
-                                        onChanged: (value) {
-                                          SessionInfo.instance.scheduleService.selectedDate = value;
-                                        },
-                                        labelBuilder: (value) => DateFormat('dd E').format(value)
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeInOut,
+                            alignment: Alignment.topCenter,
+                            child: _isSearchExpanded ? SizedBox.shrink() : ListenableBuilder(
+                              listenable: Listenable.merge([
+                                SessionInfo.instance.scheduleService.currentModelNotifier,
+                                SessionInfo.instance.scheduleService.showTypeNotifier,
+                                SessionInfo.instance.scheduleService.selectedDateNotifier,
+                              ]),
+                              builder: (context, child) {
+                                final model = SessionInfo.instance.scheduleService.currentModelNotifier.value;
+                                final showType = SessionInfo.instance.scheduleService.showTypeNotifier.value;
+                                final date = SessionInfo.instance.scheduleService.selectedDateNotifier.value;
+                                if(model == null) {
+                                  return const SizedBox.shrink();
+                                }
+                                wheelPickerV2StateKey.currentState?.selectedValue = date ?? model.object.groupedRawLessons.keys.first;
+                                final dates = model.object.groupedRawLessons.keys.toList();
+                                return Column(
+                                  children: [
+                                    if(showType == ShowType.singleDay && dates.isNotEmpty) ...[
+                                      Divider(
+                                        color: Color(0xFFFFFFFF),
                                       ),
-                                    ),
-                                  ],
-                                  if(model.receiptType == ReceiptType.db) ...[
-                                    Divider(
-                                      color: Color(0xFFFFFFFF),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsetsGeometry.only(bottom: 10),
-                                      child: Text(
-                                        'Расписание актуально с ${DateFormat('dd.MM.yyyy HH:mm').format(model.object.scheduleObject.updatedAt)}',
-                                        style: TextStyle(
-                                          fontSize: 17.6,
-                                          fontWeight: FontWeight.w900,
-                                          color: Color(0xFFFFFFFF)
+                                      Padding(
+                                        padding: EdgeInsetsGeometry.only(bottom: 10),
+                                        child: WheelPickerV2<DateTime>(
+                                          key: wheelPickerV2StateKey,
+                                          initialValue: date ?? DateTime.now(),
+                                          values: model.object.groupedRawLessons.keys.toList(),
+                                          fontSize: 20,
+                                          baseTextColor: Colors.white,
+                                          onChanged: (value) {
+                                            SessionInfo.instance.scheduleService.selectedDate = value;
+                                          },
+                                          labelBuilder: (value) => DateFormat('dd E').format(value)
                                         ),
                                       ),
-                                    )
-                                  ]
-                                ],
-                              );
-                            }
+                                    ],
+                                    if(model.receiptType == ReceiptType.db) ...[
+                                      Divider(
+                                        color: Color(0xFFFFFFFF),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsetsGeometry.only(bottom: 10),
+                                        child: Text(
+                                          'Расписание актуально с ${DateFormat('dd.MM.yyyy HH:mm').format(model.object.scheduleObject.updatedAt)}',
+                                          style: TextStyle(
+                                            fontSize: 17.6,
+                                            fontWeight: FontWeight.w900,
+                                            color: Color(0xFFFFFFFF)
+                                          ),
+                                        ),
+                                      )
+                                    ]
+                                  ],
+                                );
+                              }
+                            ),
                           ),
                         ],
                       )
