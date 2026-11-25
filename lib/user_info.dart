@@ -13,8 +13,7 @@ part 'user_info.g.dart';
 class UserInfo {
   @HiveField(0)
   int coupleId = 1;
-  @HiveField(1)
-  int callId = 1;
+  // 1 has busy
   @HiveField(2)
   ShowType showType = ShowType.fromToday;
   @HiveField(3)
@@ -96,17 +95,6 @@ class UserInfo {
   }
 
   bool isFavorite(ScheduleObject obj) => _getSet(obj).contains(obj.id);
-
-  Icon getFavoriteIcon(ScheduleObject obj){
-    final any = isFavorite(obj);
-    return Icon(
-      any ? Icons.favorite_sharp
-          : Icons.favorite_outline,
-      color:
-        any ? Color(0xEFff0284)
-        : Colors.grey
-      );
-  }
 
   Set<int> _getSet(ScheduleObject obj){
     if(obj is Group) return favoriteGroups;

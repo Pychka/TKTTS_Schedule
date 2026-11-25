@@ -22,10 +22,10 @@ class WheelPickerV2<T> extends StatefulWidget {
   });
 
   @override
-  State<WheelPickerV2<T>> createState() => WheelPickerV2State<T>();
+  State<WheelPickerV2<T>> createState() => _WheelPickerV2State<T>();
 }
 
-class WheelPickerV2State<T> extends State<WheelPickerV2<T>> {
+class _WheelPickerV2State<T> extends State<WheelPickerV2<T>> {
   late final List<GlobalKey> _itemKeys = List.generate(widget.values.length, (_) => GlobalKey());
   late T selectedValue;
   final ScrollController _scrollController = ScrollController();

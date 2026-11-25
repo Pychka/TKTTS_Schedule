@@ -8,7 +8,6 @@ import 'package:tktts_schedule/ui_models/show_type.dart';
 
 class SearchComponentV2 extends StatefulWidget {
   final List<ScheduleObject> objects;
-  final ValueChanged<ScheduleObject?> onScheduleObjectSelected;
   final bool isExpanded;
   final ValueChanged<bool> onExpandedChanged;
 
@@ -17,7 +16,6 @@ class SearchComponentV2 extends StatefulWidget {
     required this.objects,
     required this.isExpanded,
     required this.onExpandedChanged,
-    required this.onScheduleObjectSelected
   });
 
   @override
@@ -30,17 +28,38 @@ class SearchComponentV2State extends State<SearchComponentV2> {
   final FocusNode _focusNode = FocusNode();
   String query = "";
   final SearchController _searchController = SearchController();
-  ScheduleObject? selectedObject;
 
   List<String> _getCachedTokens(ScheduleObject obj) {
     return _tokensCache.putIfAbsent(obj, () => _getClean(obj.name));
   }
 
+  @override void initState() {
+    super.initState();
+    objectsToShow = widget.objects;
+    query = SessionInfo.instance.scheduleService.selectedObjectNotifier.value?.name ?? "";
+    _searchController.text = query;
+    SessionInfo.instance.scheduleService.selectedObjectNotifier.addListener(_onExternalSelection);
+  }
+
+  void _onExternalSelection() {
+    final selected = SessionInfo.instance.scheduleService.selectedObjectNotifier.value;
+    if (selected != null && _searchController.text != selected.name) {
+      _searchController.text = selected.name;
+      query = selected.name;
+    }
+  }
+
+
  @override
   void didUpdateWidget(covariant SearchComponentV2 oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.objects != widget.objects) {
+     if (oldWidget.objects != widget.objects) {
       _tokensCache.clear();
+      if (query.isEmpty) {
+        setState(() => objectsToShow = widget.objects);
+      } else {
+        search();
+      }
     }
   }
 
@@ -80,15 +99,11 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                     isDense: true,
                   ),
                   onTap: () {
-                    setState(() {
-                      widget.onExpandedChanged(true);
-                    });
+                    widget.onExpandedChanged(true);
                   },
                   onChanged: (value) {
-                    setState(() {
-                      query = value;
-                      widget.onExpandedChanged(true);
-                    });
+                    query = value;
+                    widget.onExpandedChanged(true);
                     search();
                   },
                 ),
@@ -98,15 +113,17 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.white),
                     onPressed: () {
-                      setState(() {
                         if (_searchController.text.isNotEmpty) {
-                          _searchController.clear();
-                          query = _searchController.text;
+                          setState(() {
+                            _searchController.clear();
+                            query = _searchController.text;
+                          });
                         } else {
                           widget.onExpandedChanged(false);
-                          _focusNode.unfocus();
+                          setState(() {
+                            _focusNode.unfocus();
+                          });
                         }
-                      });
                       search();
                     },
                   ),
@@ -133,7 +150,7 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                   color: Colors.transparent,
                   clipBehavior: Clip.antiAlias,
                   elevation: 0, 
-                  initialValue: SessionInfo.instance.userInfo.showType,
+                  initialValue:  SessionInfo.instance.scheduleService.showType,
                   onSelected: (ShowType type) {
                     setState(() {
                       SessionInfo.instance.scheduleService.showType = type;
@@ -198,37 +215,32 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                             itemCount: objectsToShow.length,
                             itemBuilder: (context, index) {
                               final group = objectsToShow[index];
-                              return StatefulBuilder(
-                                builder: (context, setStateLocal) {
-                                  return ListTile(
-                                    dense: true,
-                                    splashColor: const Color(0x663FA2FF),
-                                    title: Text(
-                                      group.name,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    trailing: IconButton(
-                                      onPressed: () {
-                                        setStateLocal(() {
-                                          SessionInfo.instance.userInfo.addFavorite(group);
-                                        });
-                                      },
-                                      icon: SessionInfo.instance.userInfo.getFavoriteIcon(group),
-                                    ),
-                                    onTap: () {
-                                      setState(() {
-                                        selectedObject = group;
-                                        _searchController.text = group.name;
-                                        widget.onExpandedChanged(false);
-                                      });
-                                      _focusNode.unfocus();
-                                      widget.onScheduleObjectSelected(group);
-                                    },
-                                  );
+                              return ListTile(
+                                dense: true,
+                                splashColor: const Color(0x663FA2FF),
+                                title: Text(
+                                  group.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                trailing: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      SessionInfo.instance.userInfo.addFavorite(group);
+                                    });
+                                  },
+                                  icon: _getFavoriteIcon(group),
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    _searchController.text = group.name;
+                                    widget.onExpandedChanged(false);
+                                  });
+                                  SessionInfo.instance.scheduleService.selectedObjectNotifier.value = group;
+                                  _focusNode.unfocus();
                                 },
                               );
                             },
@@ -242,8 +254,19 @@ class SearchComponentV2State extends State<SearchComponentV2> {
     );
   }
 
+  Icon _getFavoriteIcon(ScheduleObject obj){
+    final any = SessionInfo.instance.userInfo.isFavorite(obj);
+    return Icon(
+      any ? Icons.favorite_sharp
+          : Icons.favorite_outline,
+      color:
+        any ? Color(0xEFff0284)
+        : Colors.grey
+      );
+  }
+
   Widget  _buildGlassMenuItem(BuildContext popupContext, ShowType value, String title, { bool isLast = false, }) {
-    final isSelected = SessionInfo.instance.userInfo.showType == value;
+    final isSelected = SessionInfo.instance.scheduleService.showType == value;
     final radius = isLast
       ? const BorderRadius.vertical(bottom: Radius.circular(20))
       : BorderRadius.zero;
@@ -296,13 +319,6 @@ class SearchComponentV2State extends State<SearchComponentV2> {
     });
 
     setState(() => objectsToShow = scoredData.map((e) => e.obj).toList());
-  }
-
-  void changeSelection(ScheduleObject? obj){
-    setState(() {
-      selectedObject = obj; 
-      _searchController.text = obj?.name ?? "";
-    });
   }
 
   @override
@@ -441,8 +457,10 @@ double isEqualsString(
     used[bestIdx] = true;
     ks.add(bestK);
   }
+  final average = ks.sum / second.length;
+  final geometric = pow(ks.fold(1.0, (acc, item) => acc * item), 1 / second.length);
 
-  return ((ks.sum / second.length) + (pow(ks.fold(1, (acc, item) => acc * item), 1 / second.length))) / coefficient;
+  return (average + geometric) / 2; 
 }
 
 double isEquals(String target, String query, {double min = 0.7}) {

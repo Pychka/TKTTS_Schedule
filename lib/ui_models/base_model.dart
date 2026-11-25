@@ -2,6 +2,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/models/schedule_object.dart';
+import 'package:tktts_schedule/services/schedule_object_service.dart';
+import 'package:tktts_schedule/services/schedule_service.dart';
 import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/ui_models/lessons_model.dart';
 
@@ -35,6 +37,40 @@ class BaseModel<T extends ScheduleObject> extends ChangeNotifier {
 
   Widget getFooter(LessonsModel lesson, bool isCurrent){
     return Text('Заглушка');
+  }
+
+  TextButton getObjectFooterButton(ScheduleObject object, IconData icon, bool isCurrent, Future<dynamic> Function({required int id, bool changeSelection}) changeModel){
+    final buttonStyle = TextButton.styleFrom(
+      alignment: Alignment.centerLeft, 
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    );
+    final scaler = TextScaler.linear(1);
+    return TextButton(
+      onPressed: () {
+        changeModel(id: object.id);
+      },
+      style: buttonStyle,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 5,
+        children: [
+          Icon(
+            icon,
+            color: isCurrent ? Colors.white : Colors.black87
+          ),
+          Text(
+            object.name,
+            textAlign: TextAlign.center,
+            textScaler: scaler,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.normal,
+              color: isCurrent ? Colors.white : Colors.black87
+            ),
+          ),
+        ],
+      )
+    );
   }
 
   Future save() async{

@@ -83,10 +83,6 @@ class TeacherModel extends BaseModel<Teacher> {
 
   @override
   Widget getFooter(LessonsModel lesson, bool isCurrent) {
-    final buttonStyle = TextButton.styleFrom(
-      alignment: Alignment.centerLeft, 
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    );
     final scaler = TextScaler.linear(1);
     final hasSubgroups = lesson.subgroups.length > 1 || lesson.couple.subgroup > 0;
     return Column(
@@ -116,59 +112,9 @@ class TeacherModel extends BaseModel<Teacher> {
                   ),
                 ),
               Expanded(
-                child: TextButton(
-                  onPressed: () {
-                    SessionInfo.instance.scheduleService.changeModelToGroup(id: subgroup.group.id);
-                  },
-                  style: buttonStyle,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 5,
-                    children: [
-                      Icon(
-                        Icons.group_rounded,
-                        color: isCurrent ? Colors.white : Colors.black87
-                      ),
-                      Text(
-                        subgroup.group.name,
-                        textAlign: TextAlign.center,
-                        textScaler: scaler,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.normal,
-                          color: isCurrent ? Colors.white : Colors.black87
-                        ),
-                      ),
-                    ],
-                  )
-                ),
+                child: getObjectFooterButton(subgroup.group, Icons.group_rounded, isCurrent, SessionInfo.instance.scheduleService.changeModelToGroup),
               ),
-              TextButton(
-                onPressed: () {
-                  SessionInfo.instance.scheduleService.changeModelToAuditory(id: subgroup.auditorie.id);
-                },
-                style: buttonStyle,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 5,
-                  children: [
-                    Icon(
-                      Icons.door_back_door_rounded,
-                      color: isCurrent ? Colors.white : Colors.black87
-                    ),
-                    Text(
-                      subgroup.auditorie.name,
-                      textAlign: TextAlign.center,
-                      textScaler: scaler,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.normal,
-                        color: isCurrent ? Colors.white : Colors.black87
-                      ),
-                    ),
-                  ],
-                )
-              ),
+              getObjectFooterButton(subgroup.auditorie, Icons.door_back_door_rounded, isCurrent, SessionInfo.instance.scheduleService.changeModelToAuditory),
           ],
         )
       ],

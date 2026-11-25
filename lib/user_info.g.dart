@@ -18,7 +18,6 @@ class UserInfoAdapter extends TypeAdapter<UserInfo> {
     };
     return UserInfo()
       ..coupleId = (fields[0] as num).toInt()
-      ..callId = (fields[1] as num).toInt()
       ..showType = fields[2] as ShowType
       ..favoriteGroups = (fields[3] as Set).cast<int>()
       ..favoriteTeachers = (fields[4] as Set).cast<int>()
@@ -35,11 +34,9 @@ class UserInfoAdapter extends TypeAdapter<UserInfo> {
   @override
   void write(BinaryWriter writer, UserInfo obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.coupleId)
-      ..writeByte(1)
-      ..write(obj.callId)
       ..writeByte(2)
       ..write(obj.showType)
       ..writeByte(3)
