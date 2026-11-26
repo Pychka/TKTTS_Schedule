@@ -117,9 +117,21 @@ class AuditoryModel extends BaseModel<Auditory> {
                   ),
                 ),
             Expanded(
-              child: getObjectFooterButton(subgroup.teacher, Icons.person_rounded, isCurrent, SessionInfo.instance.scheduleService.changeModelToTeacher),
+              child: getObjectFooterButton(
+                subgroup.teacher,
+                Icons.person_rounded,
+                isCurrent,
+                SessionInfo.instance.scheduleService.changeModelToTeacher
+              ),
             ),
-            getObjectFooterButton(subgroup.group, Icons.group_rounded, isCurrent, SessionInfo.instance.scheduleService.changeModelToGroup),
+            Expanded(
+              child: getObjectFooterButton(
+                subgroup.group, Icons.group_rounded,
+                isCurrent,
+                SessionInfo.instance.scheduleService.changeModelToGroup,
+                align: MainAxisAlignment.end
+              ),
+            ),
           ],
         )
       ],

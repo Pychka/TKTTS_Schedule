@@ -41,6 +41,7 @@ class ScheduleService {
   Future<void> Function(ScheduleObject? object, Future<void> Function()? action)? onChangeModel;
 
   ScheduleService(this.onChangeModel){
+    _selectedDate = SessionInfo.instance.userInfo.roadMap?.selectedDate;
     selectedObjectNotifier = ValueNotifier(selectedObject);
     showTypeNotifier = ValueNotifier(_showType);
     selectedDateNotifier = ValueNotifier(SessionInfo.instance.userInfo.roadMap?.selectedDate);
@@ -74,21 +75,15 @@ class ScheduleService {
 
 
   Future uploadSchedule({ScheduleObject? object}) async {
-    if(object != null){
-      selectedObjectNotifier.value = object;
-      selectedObject = object;
-    }
-    if(selectedObject == null){
-      return;
-    }
-    if(selectedObject case Group group){
-      changeModelToGroup(id: group.id);
-    }
-    else if(selectedObject case Auditory auditory){
-      changeModelToAuditory(id: auditory.id);
-    }
-    else if(selectedObject case Teacher teacher){
-      changeModelToTeacher(id: teacher.id);
+    final target = object ?? currentModel?.object.scheduleObject;
+    if (target == null) return;
+
+    if (target is Group) {
+      await changeModelToGroup(id: target.id);
+    } else if (target is Auditory) {
+      await changeModelToAuditory(id: target.id);
+    } else if (target is Teacher) {
+      await changeModelToTeacher(id: target.id);
     }
   }
 
@@ -106,7 +101,7 @@ class ScheduleService {
     objects = [...groups, ...teachers, ...auditories];
     objects.sort(compareObjects);
     if(objects.isNotEmpty && SessionInfo.instance.userInfo.saveRoadMap){
-      changeModel(SessionInfo.instance.userInfo.roadMap);
+      await changeModel(SessionInfo.instance.userInfo.roadMap);
     }
     return objects.isNotEmpty;
   }
@@ -128,12 +123,12 @@ class ScheduleService {
     final obj = objects.whereType<T>().firstWhereOrNull((obj) => obj.id == id);
     await onChangeModel!(obj, () async {
       if(obj == null) return;
-      currentModel = await getService<T>().get(id: id);
+      final model = await getService<T>().get(id: id);
       if(changeSelection){
-        //_searchKey.currentState?.changeSelection(obj);
-        selectedObjectNotifier.value = obj;
+        model.object.scheduleObject = obj;
         SessionInfo.instance.userInfo.changeSelection(obj);
       }
+      currentModel = model;
     });
   }
 
@@ -177,7 +172,7 @@ class ScheduleService {
         model.setLessonsToShow(model.lessons.where((element) => dateGreaterOrEquals(element.couple.date, DateTime.now())).toList());
       break;
       case ShowType.singleDay:
-        _selectedDate ??= model.groupedRawLessons.keys.first;
+        _selectedDate ??= model.groupedRawLessons.keys.firstOrNull;
         if(_selectedDate == null) return;
         model.setLessonsToShow(model.lessons.where((element) => dateEquals(element.couple.date, _selectedDate!)).toList());
       break;

@@ -112,9 +112,22 @@ class TeacherModel extends BaseModel<Teacher> {
                   ),
                 ),
               Expanded(
-                child: getObjectFooterButton(subgroup.group, Icons.group_rounded, isCurrent, SessionInfo.instance.scheduleService.changeModelToGroup),
+                child: getObjectFooterButton(
+                  subgroup.group,
+                  Icons.group_rounded,
+                  isCurrent,
+                  SessionInfo.instance.scheduleService.changeModelToGroup
+                ),
               ),
-              getObjectFooterButton(subgroup.auditorie, Icons.door_back_door_rounded, isCurrent, SessionInfo.instance.scheduleService.changeModelToAuditory),
+              Expanded(
+                child: getObjectFooterButton(
+                  subgroup.auditorie,
+                  Icons.door_back_door_rounded,
+                  isCurrent,
+                  SessionInfo.instance.scheduleService.changeModelToAuditory,
+                  align: MainAxisAlignment.end
+                ),
+              ),
           ],
         )
       ],

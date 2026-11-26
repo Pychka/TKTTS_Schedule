@@ -43,9 +43,18 @@ class SearchComponentV2State extends State<SearchComponentV2> {
 
   void _onExternalSelection() {
     final selected = SessionInfo.instance.scheduleService.selectedObjectNotifier.value;
-    if (selected != null && _searchController.text != selected.name) {
-      _searchController.text = selected.name;
-      query = selected.name;
+     if (selected != null && _searchController.text != selected.name) {
+      setState(() {
+        _searchController.text = selected.name;
+        query = selected.name;
+      });
+      search();
+    } else if (selected == null && _searchController.text.isNotEmpty) {
+      setState(() {
+        _searchController.clear();
+        query = "";
+      });
+      search();
     }
   }
 
@@ -234,12 +243,12 @@ class SearchComponentV2State extends State<SearchComponentV2> {
                                   },
                                   icon: _getFavoriteIcon(group),
                                 ),
-                                onTap: () {
+                                onTap: () async {
                                   setState(() {
                                     _searchController.text = group.name;
                                     widget.onExpandedChanged(false);
                                   });
-                                  SessionInfo.instance.scheduleService.selectedObjectNotifier.value = group;
+                                  await SessionInfo.instance.scheduleService.uploadSchedule(object: group);
                                   _focusNode.unfocus();
                                 },
                               );
@@ -323,6 +332,7 @@ class SearchComponentV2State extends State<SearchComponentV2> {
 
   @override
   void dispose() {
+    SessionInfo.instance.scheduleService.selectedObjectNotifier.removeListener(_onExternalSelection);
     _focusNode.dispose();
     _searchController.dispose();
     super.dispose();

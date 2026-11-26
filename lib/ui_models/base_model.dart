@@ -2,17 +2,22 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/models/schedule_object.dart';
-import 'package:tktts_schedule/services/schedule_object_service.dart';
-import 'package:tktts_schedule/services/schedule_service.dart';
 import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/ui_models/lessons_model.dart';
 
 class BaseModel<T extends ScheduleObject> extends ChangeNotifier {
-  T scheduleObject;
+  T _scheduleObject;
+  T get scheduleObject => _scheduleObject;
+
+  set scheduleObject(T value) {
+    if (_scheduleObject == value) return;
+    _scheduleObject = value;
+    notifyListeners(); 
+  }
   List<LessonsModel> lessons;
   List<LessonsModel> lessonsToShow;
   BaseModel(
-    this.scheduleObject,
+    this._scheduleObject,
     this.lessons
   ) : lessonsToShow = lessons;
 
@@ -39,7 +44,7 @@ class BaseModel<T extends ScheduleObject> extends ChangeNotifier {
     return Text('Заглушка');
   }
 
-  TextButton getObjectFooterButton(ScheduleObject object, IconData icon, bool isCurrent, Future<dynamic> Function({required int id, bool changeSelection}) changeModel){
+  TextButton getObjectFooterButton(ScheduleObject object, IconData icon, bool isCurrent, Future<dynamic> Function({required int id, bool changeSelection}) changeModel, {MainAxisAlignment align = MainAxisAlignment.start}){
     final buttonStyle = TextButton.styleFrom(
       alignment: Alignment.centerLeft, 
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -51,6 +56,7 @@ class BaseModel<T extends ScheduleObject> extends ChangeNotifier {
       },
       style: buttonStyle,
       child: Row(
+        mainAxisAlignment: align,
         mainAxisSize: MainAxisSize.min,
         spacing: 5,
         children: [
@@ -58,14 +64,18 @@ class BaseModel<T extends ScheduleObject> extends ChangeNotifier {
             icon,
             color: isCurrent ? Colors.white : Colors.black87
           ),
-          Text(
-            object.name,
-            textAlign: TextAlign.center,
-            textScaler: scaler,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.normal,
-              color: isCurrent ? Colors.white : Colors.black87
+          Flexible(
+            child: Text(
+              object.name,
+              textAlign: TextAlign.start,
+              overflow: TextOverflow.ellipsis,
+              textScaler: scaler,
+              maxLines: 2, 
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.normal,
+                color: isCurrent ? const Color.fromARGB(255, 223, 221, 221) : Colors.black87
+              ),
             ),
           ),
         ],

@@ -119,9 +119,22 @@ class GroupModel extends BaseModel<Group> {
                   ),
                 ),
               Expanded(
-                child: getObjectFooterButton(subgroup.teacher, Icons.person_rounded, isCurrent, SessionInfo.instance.scheduleService.changeModelToTeacher),
+                child: getObjectFooterButton(
+                  subgroup.teacher,
+                  Icons.person_rounded,
+                  isCurrent,
+                  SessionInfo.instance.scheduleService.changeModelToTeacher
+                ),
               ),
-              getObjectFooterButton(subgroup.auditorie, Icons.door_back_door_rounded, isCurrent, SessionInfo.instance.scheduleService.changeModelToAuditory)
+              Expanded(
+                child: getObjectFooterButton(
+                  subgroup.auditorie,
+                  Icons.door_back_door_rounded,
+                  isCurrent,
+                  SessionInfo.instance.scheduleService.changeModelToAuditory,
+                  align: MainAxisAlignment.end
+                ),
+              ),
             ],
           )
       ],

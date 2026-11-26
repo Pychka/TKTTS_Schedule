@@ -25,10 +25,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
     SessionInfo.instance.scheduleService.onChangeModel = _changeModel;
     _data = SessionInfo.instance.scheduleService.uploadScheduleSearch(
       (object) async {
-        setState(() {
-          SessionInfo.instance.scheduleService.selectedObject = object;
-          isLoadingNotifier.value = true;
-        });
+        SessionInfo.instance.scheduleService.selectedObject = object;
+        isLoadingNotifier.value = true;
         
         try {
           await SessionInfo.instance.scheduleService.uploadSchedule();
@@ -182,11 +180,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
 
   Future _changeModel(ScheduleObject? object, Future<void> Function()? action) async {
     final isNotNull = SessionInfo.instance.userInfo.roadMap != null;
-    setState(() {
-      SessionInfo.instance.scheduleService.selectedObject = object;
-        SessionInfo.instance.scheduleService.selectedObjectNotifier.value = object;
-      //searchKey.currentState?.changeSelection(object);
-    });
+    SessionInfo.instance.scheduleService.selectedObject = object;
+    SessionInfo.instance.scheduleService.selectedObjectNotifier.value = object;
     if(isNotNull){
       isLoadingNotifier.value = true;
     }
@@ -198,7 +193,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> with WidgetsBindingObse
     
       if (mounted && isNotNull) {
         SessionInfo.instance.scheduleService.selectedObjectNotifier.value = object;
-        //searchKey.currentState?.changeSelection(object);
         isLoadingNotifier.value = false;
       }
     } catch (e) {
