@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:tktts_schedule/models/schedule_object.dart';
@@ -11,7 +12,6 @@ import 'package:tktts_schedule/ui_models/schedule_object_metadata.dart';
 abstract class ScheduleObjectService<T extends ScheduleObject, TModel extends BaseModel<T>> {
   String get baseUrl;
   String get entityName;
-
   TModel modelFromJson(Map<String, dynamic> json);
   T fromJson(Map<String, dynamic> json);
   TModel createEmpty(int id);
@@ -23,7 +23,7 @@ abstract class ScheduleObjectService<T extends ScheduleObject, TModel extends Ba
   Future<ScheduleObjectMetadata<List<T>>> getMany() async {
     ScheduleObjectMetadata<List<T>> result;
     try{
-      final response = await http.get(Uri.parse(baseUrl));
+      final response = await http.get(Uri.parse(baseUrl)).timeout(const Duration(seconds: 10));
       if(response.statusCode == 200){
         final List<dynamic> jsonList = jsonDecode(response.body);
         final objects = jsonList.map((rawJson) {
@@ -40,6 +40,9 @@ abstract class ScheduleObjectService<T extends ScheduleObject, TModel extends Ba
         throw Exception('Не удалось загрузить список ($entityName): код ${response.statusCode}');
       }
     }
+    on TimeoutException catch (_) {
+      result = ScheduleObjectMetadata(await getListFromDb(), ReceiptType.db);
+    }
     on SocketException{
       result = ScheduleObjectMetadata(await getListFromDb(), ReceiptType.db);
     }
@@ -52,7 +55,7 @@ abstract class ScheduleObjectService<T extends ScheduleObject, TModel extends Ba
   Future<ScheduleObjectMetadata<TModel>> get({required int id, DateTime? from}) async {
     try {
       final url = '$baseUrl/$id?timetable=true${from == null ? "" : "&fromDate=$from"}';
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url)).timeout(Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -70,6 +73,8 @@ abstract class ScheduleObjectService<T extends ScheduleObject, TModel extends Ba
       }
 
       throw Exception('Не удалось загрузить $entityName (код: ${response.statusCode})');
+    } on TimeoutException catch(_) {
+      return ScheduleObjectMetadata(await getFromDb(id), ReceiptType.db);
     } on SocketException {
       return ScheduleObjectMetadata(await getFromDb(id), ReceiptType.db);
     } on HandshakeException {

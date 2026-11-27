@@ -36,7 +36,7 @@ class _UpdatesScreenState extends State<UpdatesScreen> with WidgetsBindingObserv
               values: List.generate(22, (i) => 15 + i * 5),
               onChanged: (val) async {
                 currentValue = val;
-                SessionInfo.instance.userInfo.syncIntervalMinutes = val;
+                await SessionInfo.instance.userInfo.syncIntervalMinutesValue(val);
                 await StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
               },
               labelBuilder: (val) {

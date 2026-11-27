@@ -5,7 +5,9 @@ import 'package:native_workmanager/native_workmanager.dart';
 class AndroidBackgroundSyncHelper {
   static const String _taskId = 'periodic-schedule-sync';
 
-  static Future<void> schedulePeriodicSync(int minutes) async {
+  static Future<void> schedulePeriodicSync(int minutes, {
+    bool forceReplace = false,
+  }) async {
     if (kIsWeb || !Platform.isAndroid) return;
     final validMinutes = minutes.clamp(15, 120);
 
@@ -16,6 +18,9 @@ class AndroidBackgroundSyncHelper {
       trigger: TaskTrigger.periodic(Duration(minutes: validMinutes)),
       worker: DartWorker(callbackId: 'sync-schedule'),
       constraints: Constraints.networkRequired,
+      existingPolicy: forceReplace
+          ? ExistingTaskPolicy.replace
+          : ExistingTaskPolicy.keep,
     );
   }
 }

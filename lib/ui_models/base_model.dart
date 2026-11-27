@@ -74,7 +74,7 @@ class BaseModel<T extends ScheduleObject> extends ChangeNotifier {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.normal,
-                color: isCurrent ? const Color.fromARGB(255, 223, 221, 221) : Colors.black87
+                color: isCurrent ? Colors.white : Colors.black87
               ),
             ),
           ),

@@ -8,6 +8,7 @@ import 'package:tktts_schedule/screens/additional/settings/updates_screen.dart';
 import 'package:tktts_schedule/screens/schedule_screen.dart';
 import 'package:tktts_schedule/screens/settings_screen.dart';
 import 'package:tktts_schedule/session_info.dart';
+import 'package:tktts_schedule/storage_service.dart';
 import 'package:tktts_schedule/ui_models/settings_group.dart';
 
 class MainScreen extends StatefulWidget{
@@ -118,5 +119,12 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         )
       )
     );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      await StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo);
+    }
   }
 }

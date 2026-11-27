@@ -60,6 +60,7 @@ class _ScheduleMenuHeaderState extends State<ScheduleMenuHeader> with WidgetsBin
                       Padding(
                         padding: EdgeInsetsGeometry.only(bottom: 10),
                         child: WheelPickerV2<DateTime>(
+                          key: ValueKey(date),
                           initialValue: date ?? model.object.groupedRawLessons.keys.first,
                           values: model.object.groupedRawLessons.keys.toList(),
                           fontSize: 20,

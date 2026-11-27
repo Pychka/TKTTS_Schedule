@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:tktts_schedule/models/data_base.dart';
 import 'package:tktts_schedule/models/schedule_object.dart';
+import 'package:tktts_schedule/services/background/android_background_sync_helper.dart';
+import 'package:tktts_schedule/session_info.dart';
 import 'package:tktts_schedule/storage_service.dart';
 import 'package:tktts_schedule/ui_models/model_type.dart';
 import 'package:tktts_schedule/ui_models/road_map.dart';
@@ -39,6 +40,11 @@ class UserInfo {
     roadMap = roadMap!.previous;
     await StorageService.instance.saveUserInfo(this);
     return true;
+  }
+
+  Future syncIntervalMinutesValue(int value) async {
+    syncIntervalMinutes = value;
+    await AndroidBackgroundSyncHelper.schedulePeriodicSync(SessionInfo.instance.userInfo.syncIntervalMinutes, forceReplace: true);
   }
 
   set saveRoadMapValue(bool value){

@@ -58,7 +58,6 @@ class ScheduleService {
     _selectedDate = value;
     selectedDateNotifier.value = value;
     SessionInfo.instance.userInfo.roadMap?.selectedDate = _selectedDate;
-    unawaited(StorageService.instance.saveUserInfo(SessionInfo.instance.userInfo));
     if(showType == ShowType.singleDay){
       changeShow(type: showType);
     }
@@ -173,6 +172,7 @@ class ScheduleService {
       break;
       case ShowType.singleDay:
         _selectedDate ??= model.groupedRawLessons.keys.firstOrNull;
+        selectedDateNotifier.value = _selectedDate;
         if(_selectedDate == null) return;
         model.setLessonsToShow(model.lessons.where((element) => dateEquals(element.couple.date, _selectedDate!)).toList());
       break;

@@ -34,7 +34,7 @@ class StorageService {
   }
 
   Future<Box> _getBox() async {
-    if (_userBox.isOpen){
+    if (!_userBox.isOpen){
       _userBox = await Hive.openBox(_boxName);
     }
      return _userBox;

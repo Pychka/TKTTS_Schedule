@@ -20,7 +20,7 @@ class AndroidNotificationService {
 
     _isInitialized = true;
   }
-
+  
   static Future<void> showScheduleChanged({
     required int id,
     required String title,
